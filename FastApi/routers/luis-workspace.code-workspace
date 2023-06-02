@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "../../../try-hard-app-vite"
+		},
+		{
+			"path": "../../../tryhard-bakend"
+		},
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../tryhard-be"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "try-hard-app-vite"
+	}
+}
