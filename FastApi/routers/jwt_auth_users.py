@@ -5,7 +5,9 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 
-router = APIRouter()
+router = APIRouter (prefix="/jwtauth",
+                    tags=["jwtauth"],
+                    responses={status.HTTP_404_NOT_FOUND: {"message": "No encontrado"}})
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="login")
 
