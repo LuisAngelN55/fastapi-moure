@@ -1,104 +1,140 @@
 from db.database import Base
-from sqlalchemy import Column, Integer, String, BigInteger, Date, DateTime, Boolean, SmallInteger, CHAR, ForeignKey
+from sqlalchemy import Column, Integer, String, BigInteger, Date, DateTime, Boolean, SmallInteger, CHAR, ForeignKey, UniqueConstraint, Sequence
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from datetime import datetime
 
 
-## * ------------------- BLOOD TYPE MODEL ------------------- ##
-class Blood_Type(Base):
-    __tablename__    = "blood_type"
+
+## * ------------------- BLOOD TYPES MODEL ------------------- ##
+class Blood_Types(Base):
+    __tablename__    = "blood_types"
     
     id               = Column(SmallInteger, primary_key=True)
     blood_type       = Column(String(2), nullable=False)
     rh               = Column(CHAR, nullable=False)
     
     athletes         = relationship('Athletes', backref="blood_type")
+
+
+
+## * ------------------- LANGUAGES MODEL ------------------- ##language_codes.code
+class Language_Codes(Base):
+    __tablename__        = 'language_codes'
     
+    id                   = Column(SmallInteger, primary_key=True)
+    code                 = Column(String(3), nullable=False, unique=True)
+    is_active            = Column(Boolean, nullable=False)
+    
+    countries      = relationship('Countries', back_populates='language_codes')
+    doc_types      = relationship('Document_Type', back_populates='language_codes')
+    genders        = relationship('Gender', back_populates='language_codes')
+    lang_names     = relationship('Languages', back_populates='language_codes')
 
 
-## * ------------------- DOCUMENT TYPE MODEL ------------------- ##
-class Document_Type(Base):
-    __tablename__         = "document_type"
+
+## * ------------------- LANGUAGE NAMES MODEL ------------------- ##
+class Languages(Base):
+    __tablename__     = 'languages'
+    
+    id                = Column(SmallInteger, primary_key=True)
+    lang_code         = Column(String(3), ForeignKey('language_codes.code'), nullable=False)
+    lang_name         = Column(String(25), nullable=False)
+
+
+## * ------------------- DOCUMENT TYPES MODEL ------------------- ##
+class Document_Types(Base):
+    __tablename__         = "document_types"
+    __table_args__        = (UniqueConstraint('doc_type_code', 'lang_code', name='unique_doc_type'), )
+
     
     id                    = Column(SmallInteger, primary_key=True)
-    document_type_code    = Column(String(2), nullable=False)
-    text_content_id       = Column(Integer, ForeignKey('text_content.id'))
+    doc_type_code         = Column(String(2), nullable=False)
+    doc_type_name         = Column(String(30), nullable=False)
+    lang_code             = Column(String(3), ForeignKey('language_codes.code'), nullable=False)
+    is_active             = Column(Boolean, nullable=False)
+
+    document_number       = relationship('Document_Numbers')
+
+
+
+## * ------------------- DOCUMENT NUMBERS MODEL ------------------- ##
+class Document_Numbers(Base):
+    __tablename__        = 'document_numbers'
+    __table_args__ = (UniqueConstraint('athlete_id', 'doc_type', name='unique_doc_number'), )
+
+
+    id              = Column(SmallInteger, primary_key=True)
+    athlete_id      = Column(Integer, ForeignKey('athletes.id'), nullable=False)
+    doc_type        = Column(SmallInteger, ForeignKey('document_types.id'), nullable=False)
+    doc_number      = Column(Integer, nullable=False)
     
-    document_number       = relationship('Document_Number', backref='document_type')
+    athletes        = relationship('Athletes', backref='document_numbers', cascade='all, delete')
 
 
 
-## * ------------------- DOCUMENT NUMBER MODEL ------------------- ##
-class Document_Number(Base):
-   __tablename__        = 'document_number'
+## * ------------------- COUNTRY CODES MODEL ------------------- ##
+class Country_Codes(Base):
+    __tablename__        = 'country_codes'
 
-   athlete_id           = Column(Integer, ForeignKey('athletes.id'), primary_key=True)
-   document_type        = Column(SmallInteger, ForeignKey('document_type.id'), primary_key=True)
-   document_number      = Column(Integer, primary_key=True)
-   
-   athletes             = relationship('Athletes', backref='document_number', cascade='all, delete')
 
+    id                   = Column(SmallInteger, primary_key=True)
+    code                 = Column(String(4), nullable=False, unique=True)
+    is_active            = Column(Boolean, nullable=False)
+
+    athletes             = relationship('Athletes', backref='country_codes')
+    regions              = relationship('Regions', backref='country_codes')
+    phones               = relationship('Phones', backref='country_codes')
 
 
 ## * ------------------- COUNTRY MODEL ------------------- ##
 class Countries(Base):
-   __tablename__        = 'countries'
+    __tablename__        = 'countries'
+    __table_args__ = (UniqueConstraint('country_code', 'lang_code', name='unique_country'), )
 
-   id                   = Column(SmallInteger, primary_key=True)
-   country_code         = Column(String(4), nullable=False, unique=True)
-   text_content_id      = Column(Integer, ForeignKey('text_content.id') )
-   country_phone_code   = Column(String(4), nullable=False, unique=True)
+
+    id                   = Column(SmallInteger, primary_key=True)
+    country_code         = Column(String(4), ForeignKey('country_codes.code'), nullable=False)
+    country_name         = Column(String(50), nullable=False)   
+    lang_code            = Column(String(3), ForeignKey('language_codes.code'), nullable=False)
    
-   athletes             = relationship('Athletes', backref='countries')
-   phones               = relationship('Phones', back_populates='countries', cascade='all, delete')
+
+
+## * ------------------- REGION MODEL ------------------- ##
+class Regions(Base):
+    __tablename__        = 'regions'
+
+    id                   = Column(Integer, primary_key=True)
+    region_name          = Column(String(30), nullable=False)
+    country_code         = Column(String(4), ForeignKey('country_codes.code'), nullable=False)
+    is_active            = Column(Boolean, nullable=False)
 
 
 
-## * ------------------- PHONE MODEL ------------------- ##
-class Phones(Base):
-   __tablename__         = 'phones'
-
-   athlete_id            = Column(Integer, ForeignKey('athletes.id'), primary_key=True)
-   phone_country_code    = Column(String(4), ForeignKey('countries.country_phone_code'), primary_key=True)
-   phone_number          = Column(String(15), primary_key=True)
-   
-   athletes              = relationship('Athletes', backref='document_number', cascade='all, delete')
-
-
-
-## * ------------------- LANGUAGES MODEL ------------------- ##
-class Languages(Base):
-    __tablename__        = 'languages'
+## * ------------------- GENDER CODES MODEL ------------------- ##
+class Gender_Codes(Base):
+    __tablename__    = "gender_codes"
     
-    code                 = Column(String(3), primary_key=True)
-    language_name        = Column(String(25))
-    
-    text_content_id      = relationship('Text_Context')
-    translations_id      = relationship('Translations')
-    
+    id               = Column(SmallInteger, primary_key=True)
+    code             = Column(String(8), unique=True)
+    is_active        = Column(Boolean, nullable=False)
+
+    athletes         = relationship('Athletes', backref="gender")
+    gender_desc      = relationship('Genders', backref="gender")
 
 
-## * ------------------- TRANSLATIONS MODEL ------------------- ##
-class Translations(Base):
-    __tablename__        = 'translations'
+## * ------------------- GENDERS MODEL ------------------- ##S
+class Genders(Base):
+    __tablename__    = "genders"
+    __table_args__ = (UniqueConstraint('lang_code', 'gender_code', name='unique_gender'), )
+
     
-    text_content_id      = Column(BigInteger, ForeignKey('text_content.id') , primary_key=True)
-    language_code        = Column(String(3), ForeignKey('languages.code'), primary_key=True)
-    translation          = Column(String(200), nullable=False)
-    
-    
-    
-## * ------------------- TEXT CONTENT MODEL ------------------- ##   
-class Text_Content(Base):
-    __tablename__        = 'text_content'
-    
-    id                   = Column(BigInteger, primary_key=True)
-    original_text        = Column(String(200), nullable=False)
-    original_language    = Column(String(3), ForeignKey('languages.code'), nullable=False)
-    table_name           = Column(String(30), nullable=False)
-    
-    translations_code    = relationship('Translations', cascade='all', backref='text_content')
-    countries            = relationship('Countries', cascade='all, delete', backref='text_content')
-    
-    
-    
+    id               = Column(SmallInteger, primary_key=True)
+    lang_code        = Column(String(3), ForeignKey('language_codes.code'))
+    gender_code      = Column(String(8), ForeignKey('gender_codes.code'))
+    desc             = Column(String(20), nullable=False)
+
+
+
+# server_default=Sequence('mdata_translations_seq', start=1).next_value()
+# __table_args__ = (UniqueConstraint('table_name', 'row_id', 'language_code', name='unique_translations'), )
