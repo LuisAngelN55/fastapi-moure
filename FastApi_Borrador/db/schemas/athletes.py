@@ -4,25 +4,17 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import date, datetime
 
 # Entidad Usuario
-def Athletes(BaseModel):
-    return {
-        "id" : str,
-        "username" : str,
-        "email" : str,
-        "first_name" : str,
-        "last_name" : str,
-        "display_name" : str,
-        "birthday" : date,
-        "password" : str,
-        "photo_url" : str,
+class create_athlete(BaseModel):
+        username :          str
+        email :             str
+        first_name :        str | None = None
+        last_name :         str | None = None
+        display_name :      str | None = None
+        birthday :          date | None = None
+        password :          str
+        photo_url :         str | None = None
 
-        "created_date" : datetime,
-        "last_connection" : datetime,
-        "email_verified" : bool,
-        "is_active"     : bool,
-
-        "blood_type_id" : str,
-        "nationality_id" : str,
-        "phone_id" : int,
-        "gender_code" : str
-    }
+        blood_type_id :     str | None = None
+        nationality_id :    str | None = None
+        phone_id :          int | None = None
+        gender_code :       str | None = None
