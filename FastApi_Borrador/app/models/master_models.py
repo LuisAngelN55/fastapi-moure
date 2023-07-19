@@ -26,10 +26,10 @@ class Language_Codes(Base):
     code                 = Column(String(3), nullable=False, unique=True)
     is_active            = Column(Boolean, nullable=False)
     
-    countries      = relationship('Countries', back_populates='language_codes')
-    doc_types      = relationship('Document_Type', back_populates='language_codes')
-    genders        = relationship('Gender', back_populates='language_codes')
-    lang_names     = relationship('Languages', back_populates='language_codes')
+    countries      = relationship('Countries', backref='language_codes')
+    doc_types      = relationship('Document_Types', backref='language_codes')
+    genders        = relationship('Genders', backref='language_codes')
+    lang_names     = relationship('Languages', backref='language_codes')
 
 
 
@@ -119,8 +119,8 @@ class Gender_Codes(Base):
     code             = Column(String(8), unique=True)
     is_active        = Column(Boolean, nullable=False)
 
-    athletes         = relationship('Athletes', backref="gender")
-    gender_desc      = relationship('Genders', backref="gender")
+    athletes         = relationship('Athletes', backref="gender_codes")
+    gender_desc      = relationship('Genders', backref="gender_codes")
 
 
 ## * ------------------- GENDERS MODEL ------------------- ##S

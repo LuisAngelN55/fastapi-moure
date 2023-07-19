@@ -12,6 +12,13 @@ class Settings(BaseSettings):
     
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
     
+    # JWT Configuration
+    JWT_ALGORITHM  : str = "HS256"
+    JWT_ACCESS_TOKEN_DURATION : int = 1
+    JWT_SECRET  : str = "D86201963E5A3EA328FC093B8F8D6AABC464049810BAE84D6D7C9964319D24AF"
+    # 60 minutes * 24 hours * 8 days = 8 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+
 
 
 settings = Settings()

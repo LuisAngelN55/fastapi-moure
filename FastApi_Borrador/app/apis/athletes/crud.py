@@ -15,8 +15,9 @@ class CRUDAthletes(CRUDBase[Athletes, Athlete_SchemaIN, Athlete_SchemaIN]):
     def create(self, db: Session, *, obj_in: Athlete_SchemaIN) -> Athletes:
         db_obj = Athletes(
             email=obj_in.email,
-            hashed_password=get_password_hash(obj_in.password),
-            first_name=obj_in.first_name,
+            password=get_password_hash(obj_in.password),
+            username=obj_in.username,
+            # first_name=obj_in.first_name,
             # is_superAthletes=obj_in.is_superAthletes,
         )
         db.add(db_obj)
@@ -48,7 +49,7 @@ class CRUDAthletes(CRUDBase[Athletes, Athlete_SchemaIN, Athlete_SchemaIN]):
     def is_active(self, Athletes: Athletes) -> bool:
         return Athletes.is_active
 
-    def is_superAthletes(self, Athletes: Athletes) -> bool:
+    def is_superuser(self, Athletes: Athletes) -> bool:
         return Athletes.is_superAthletes
 
 

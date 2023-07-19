@@ -5,6 +5,7 @@ from schemas.athletes import Athlete_SchemaIN, Athlete_SchemaOUT
 from sqlalchemy.orm import Session
 from apis import deps
 from apis.athletes import crud
+import models
 
 
 
@@ -17,8 +18,11 @@ oauth2 = OAuth2PasswordBearer(tokenUrl="login")
 
 
 
-@router.post('/', status_code=status.HTTP_201_CREATED, response_model=Athlete_SchemaOUT )
-async def create_athlete(*, db: Session = Depends(deps.get_db), athlete: Athlete_SchemaIN):
+# @router.post('/', status_code=status.HTTP_201_CREATED, response_model=Athlete_SchemaOUT )
+@router.post('/', status_code=status.HTTP_201_CREATED )
+async def create_athlete(*, db: Session = Depends(deps.get_db),
+                         athlete: Athlete_SchemaIN,
+                         current_user: models.athletes_info = Depends(deps.get_current_active_superuser)):
     # if type(search_user("email", user.email)) == User:
     #     raise HTTPException(status_code=404, detail="El usuario ya existe")
 
