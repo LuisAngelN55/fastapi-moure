@@ -1,5 +1,5 @@
 from db.database import Base
-from sqlalchemy import Column, Integer, String, BigInteger, Date, DateTime, Boolean, SmallInteger, CHAR, ForeignKey, UniqueConstraint, Sequence
+from sqlalchemy import CheckConstraint, Column, Integer, String, BigInteger, Date, DateTime, Boolean, SmallInteger, CHAR, ForeignKey, UniqueConstraint, Sequence
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
@@ -49,7 +49,7 @@ class Document_Types(Base):
 
     
     id                    = Column(SmallInteger, primary_key=True)
-    doc_type_code         = Column(String(2), nullable=False)
+    doc_type_code         = Column(String(2), nullable=False, unique=True)
     doc_type_name         = Column(String(30), nullable=False)
     lang_code             = Column(String(3), ForeignKey('language_codes.code'), nullable=False)
     is_active             = Column(Boolean, nullable=False)
@@ -61,15 +61,20 @@ class Document_Types(Base):
 ## * ------------------- DOCUMENT NUMBERS MODEL ------------------- ##
 class Document_Numbers(Base):
     __tablename__        = 'document_numbers'
-    __table_args__ = (UniqueConstraint('athlete_id', 'doc_type', name='unique_doc_number'), )
+    __table_args__       = (
+                             UniqueConstraint('doc_type_id', 'doc_number', name='unique_document'),
+                             CheckConstraint('num_nonnulls(athlete_id, fitness_center_id) > 0'),
+                           )    
 
 
-    id              = Column(SmallInteger, primary_key=True)
-    athlete_id      = Column(Integer, ForeignKey('athletes.id'), nullable=False)
-    doc_type        = Column(SmallInteger, ForeignKey('document_types.id'), nullable=False)
-    doc_number      = Column(Integer, nullable=False)
+    id                   = Column(SmallInteger, primary_key=True)
+    athlete_id           = Column(Integer, ForeignKey('athletes.id'), nullable=False)
+    fitness_center_id    = Column(Integer, ForeignKey('fitness_centers.id'))
+    doc_type_id          = Column(SmallInteger, ForeignKey('document_types.id'), nullable=False)
+    doc_number           = Column(Integer, nullable=False)
     
-    athletes        = relationship('Athletes', backref='document_numbers', cascade='all, delete')
+    athletes             = relationship('Athletes', backref='document_numbers', cascade='all, delete', foreign_keys=[athlete_id])
+    fitness_centers      = relationship('Fitness_Centers', backref='document_numbers', cascade='all, delete', foreign_keys=[fitness_center_id])
 
 
 

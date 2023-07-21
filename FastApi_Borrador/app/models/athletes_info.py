@@ -10,27 +10,28 @@ from models import master_models
 class Athletes(Base):
     __tablename__ = "athletes"
     
-    id               = Column( BigInteger, primary_key=True)
-    username         = Column(String(50), nullable=False)
-    email            = Column(String(100), nullable=False)
-    first_name       = Column(String(50))
-    last_name        = Column(String(50))
-    display_name     = Column(String(30))
-    password         = Column(String(80), nullable=False) 
-    photo_url        = Column(String(200))
-    birthday         = Column(Date)
+    id                   = Column( BigInteger, primary_key=True)
+    username             = Column(String(50), nullable=False)
+    email                = Column(String(100), nullable=False)
+    first_name           = Column(String(50))
+    last_name            = Column(String(50))
+    display_name         = Column(String(30))
+    password             = Column(String(80), nullable=False) 
+    photo_url            = Column(String(200))
+    birthday             = Column(Date)
+
+    created_date         = Column(DateTime(timezone=True), default= datetime.now(), server_default=func.now())
+    last_connection      = Column(DateTime(timezone=True))
+    email_verified       = Column(Boolean, default=False, server_default='False')
+    is_active            = Column(Boolean, default=True, server_default='True')
     
-    created_date     = Column(DateTime(timezone=True), default= datetime.now(), server_default=func.now())
-    last_connection  = Column(DateTime(timezone=True))
-    email_verified   = Column(Boolean, default=False, server_default='False')
-    is_active        = Column(Boolean, default=True, server_default='True')
+    blood_type_id        = Column(SmallInteger, ForeignKey('blood_types.id'))
+    nationality_code     = Column(String(4), ForeignKey('country_codes.code'))
+    document_number_id   = Column(Integer, ForeignKey('document_numbers.id'))
+    phone_id             = Column(Integer, ForeignKey('phones.id'))
+    gender_code          = Column(String(4), ForeignKey('gender_codes.code'))
     
-    blood_type_id    = Column(SmallInteger, ForeignKey('blood_types.id'))
-    nationality_code   = Column(String(4), ForeignKey('country_codes.code'))
-    phone_id         = Column(Integer, ForeignKey('phones.id'))
-    gender_code        = Column(String(4), ForeignKey('gender_codes.code'))
-    
-    phones           =      relationship('Phones', backref='athletes', foreign_keys=[phone_id])
+    phones               = relationship('Phones', backref='athletes', foreign_keys=[phone_id])
 
 
 
@@ -61,13 +62,11 @@ class Phones(Base):
                             )
 
     id                    = Column(Integer, primary_key=True)
-    athlete_id            = Column(Integer, ForeignKey('athletes.id'), ForeignKey('phones.id'))
+    athlete_id            = Column(Integer, ForeignKey('athletes.id'))
     fcenter_id            = Column(Integer, ForeignKey('fitness_centers.id'))
     country_code_id       = Column(String(4), ForeignKey('country_codes.code'))
     phone_number          = Column(String(15), nullable=False)
     
-    
     athlete               = relationship('Athletes', foreign_keys=[athlete_id])
     fcenter               = relationship('Fitness_Centers', foreign_keys=[fcenter_id])
-    country_code          = relationship('Country_Codes', foreign_keys=[country_code_id])
     
