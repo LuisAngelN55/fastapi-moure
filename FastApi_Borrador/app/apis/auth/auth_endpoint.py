@@ -11,7 +11,7 @@ from apis.athletes import crud
 from core import security
 from core.config import settings
 from core.security import get_password_hash
-from utils import (
+from utils.utils import (
     generate_password_reset_token,
     send_reset_password_email,
     verify_password_reset_token,
@@ -43,8 +43,8 @@ def login_access_token(
     }
 
 
-@router.post("/login/test-token", response_model=schemas.User)
-def test_token(current_user: models.User = Depends(deps.get_current_user)) -> Any:
+@router.post("/login/test-token", response_model=schemas.Athlete_SchemaOUT)
+def test_token(current_user: models.Athletes = Depends(deps.get_current_user)) -> Any:
     """
     Test access token
     """

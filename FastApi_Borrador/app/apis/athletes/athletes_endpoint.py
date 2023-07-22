@@ -17,8 +17,8 @@ from jose import jwt
 
 
 
-router = APIRouter (prefix="/signup",
-                    tags=["basicauth"],
+router = APIRouter (prefix="/athletes",
+                    tags=["Athletes"],
                     responses={status.HTTP_404_NOT_FOUND: {"message": "No encontrado"}})
 
 
