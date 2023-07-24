@@ -3,6 +3,8 @@ from sqlalchemy import CheckConstraint, Column, Integer, String, BigInteger, Dat
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import UUID
+
 
 
 
@@ -68,7 +70,7 @@ class Document_Numbers(Base):
 
 
     id                   = Column(SmallInteger, primary_key=True)
-    athlete_id           = Column(Integer, ForeignKey('athletes.id'), nullable=False)
+    athlete_id           = Column(UUID(as_uuid=True), ForeignKey('athletes.id'), nullable=False)
     fitness_center_id    = Column(Integer, ForeignKey('fitness_centers.id'))
     doc_type_id          = Column(SmallInteger, ForeignKey('document_types.id'), nullable=False)
     doc_number           = Column(Integer, nullable=False)

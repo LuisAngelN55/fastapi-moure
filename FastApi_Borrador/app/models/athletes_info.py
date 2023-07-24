@@ -1,22 +1,25 @@
 from db.database import Base
-from sqlalchemy import Column, Integer, String, BigInteger, Date, DateTime, Boolean, ForeignKey, SmallInteger, UniqueConstraint, CheckConstraint
+from sqlalchemy import Column, Integer, Sequence, String, BigInteger, Date, DateTime, Boolean, ForeignKey, SmallInteger, UniqueConstraint, CheckConstraint
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from models import master_models
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
 
 
 ## * ------------------- ATHLETES MODEL ------------------- ##
 class Athletes(Base):
     __tablename__ = "athletes"
     
-    id                   = Column( BigInteger, primary_key=True)
+    # id                   = Column( BigInteger, Sequence('athletes_table_seq', start=1), autoincrement=True)
+    id                 = Column( UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username             = Column(String(50), nullable=False)
     email                = Column(String(100), nullable=False)
     first_name           = Column(String(50))
     last_name            = Column(String(50))
     display_name         = Column(String(30))
-    password             = Column(String(80), nullable=False) 
+    hashed_password      = Column(String(80), nullable=False) 
     photo_url            = Column(String(200))
     birthday             = Column(Date)
 
@@ -24,6 +27,7 @@ class Athletes(Base):
     last_connection      = Column(DateTime(timezone=True))
     email_verified       = Column(Boolean, default=False, server_default='False')
     is_active            = Column(Boolean, default=True, server_default='True')
+    is_superuser         = Column(Boolean, default=False, server_default='False')
     
     blood_type_id        = Column(SmallInteger, ForeignKey('blood_types.id'))
     nationality_code     = Column(String(4), ForeignKey('country_codes.code'))
@@ -62,7 +66,7 @@ class Phones(Base):
                             )
 
     id                    = Column(Integer, primary_key=True)
-    athlete_id            = Column(Integer, ForeignKey('athletes.id'))
+    athlete_id            = Column(UUID(as_uuid=True), ForeignKey('athletes.id'))
     fcenter_id            = Column(Integer, ForeignKey('fitness_centers.id'))
     country_code_id       = Column(String(4), ForeignKey('country_codes.code'))
     phone_number          = Column(String(15), nullable=False)

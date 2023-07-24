@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional
-
+from fastapi import HTTPException
 import emails
 from emails.template import JinjaTemplate
 from jose import jwt
@@ -23,14 +23,18 @@ def send_email(
         mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
     )
     smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
-    if settings.SMTP_TLS:
-        smtp_options["tls"] = True
+    if settings.SMTP_SSL:
+        smtp_options["ssl"] = True
     if settings.SMTP_USER:
         smtp_options["user"] = settings.SMTP_USER
     if settings.SMTP_PASSWORD:
         smtp_options["password"] = settings.SMTP_PASSWORD
     response = message.send(to=email_to, render=environment, smtp=smtp_options)
+    print(response.status_code)
     logging.info(f"send email result: {response}")
+    if response.status_code != 250:
+        raise HTTPException(status_code=400, detail="Invalid token")
+        
 
 
 def send_test_email(email_to: str) -> None:
@@ -93,14 +97,14 @@ def generate_password_reset_token(email: str) -> str:
     expires = now + delta
     exp = expires.timestamp()
     encoded_jwt = jwt.encode(
-        {"exp": exp, "nbf": now, "sub": email}, settings.SECRET_KEY, algorithm="HS256",
+        {"exp": exp, "nbf": now, "sub": email}, settings.JWT_SECRET, algorithm="HS256",
     )
     return encoded_jwt
 
 
 def verify_password_reset_token(token: str) -> Optional[str]:
     try:
-        decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        return decoded_token["email"]
+        decoded_token = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+        return decoded_token["sub"]
     except jwt.JWTError:
         return None

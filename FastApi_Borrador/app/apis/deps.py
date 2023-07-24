@@ -6,7 +6,7 @@ from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from schemas import athletes, token as tokenSchema
+from schemas import athletes_schema, token as tokenSchema
 from models import athletes_info
 from core import security
 from core.config import settings
@@ -26,13 +26,11 @@ def get_db() -> Generator:
         db.close()
 
 
-def get_current_user(
+def get_current_athlete(
     db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
-) -> athletes.Athlete_SchemaOUT:
-    print('GET CURRENT USER')
+) -> athletes_info.Athletes:
     
     try:
-        print('GET CURRENT USER')
         
         payload = jwt.decode(
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
@@ -43,29 +41,27 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-        
-    print('GET CURRENT USER')
+
     athlete = crud.athletes.get(db, id=token_data.sub)
     if not athlete:
         raise HTTPException(status_code=404, detail="User not found")
     return athlete
 
 
-def get_current_active_user(
-    current_user: athletes_info = Depends(get_current_user),
+def get_current_active_athlete(
+    current_athlete: athletes_info = Depends(get_current_athlete),
 ) -> athletes_info:
-    if not crud.user.is_active(current_user):
+    if not crud.athletes.is_active(current_athlete):
         raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
+    return current_athlete
 
 
 def get_current_active_superuser(
-    current_user: athletes_info = Depends(get_current_user),
+    current_athlete: athletes_info = Depends(get_current_athlete),
 ) -> athletes_info:
-    print('GET CURRENT USER')
     
-    if not crud.athletes.is_superuser(current_user):
+    if not crud.athletes.is_superuser(current_athlete):
         raise HTTPException(
             status_code=400, detail="The user doesn't have enough privileges"
         )
-    return current_user
+    return current_athlete
