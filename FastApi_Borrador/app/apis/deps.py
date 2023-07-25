@@ -14,7 +14,7 @@ from db.database import SessionLocal
 from apis.athletes import crud
 
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
+    tokenUrl=f"{settings.API_V1_STR}/auth/login/access-token"
 )
 
 
@@ -65,3 +65,4 @@ def get_current_active_superuser(
             status_code=400, detail="The user doesn't have enough privileges"
         )
     return current_athlete
+

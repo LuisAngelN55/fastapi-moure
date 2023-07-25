@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm 
 from datetime import date, datetime
-from sqlalchemy.dialects.postgresql import UUID
+from schemas.phones_schema import PhoneNumberBase
 import uuid
 
 
@@ -18,7 +16,6 @@ class AthleteBase(BaseModel):
 
     blood_type_id        : int | None = None
     nationality_code     : str | None = None
-    phone_id             : int | None = None
     document_number_id   : int | None = None    
     gender_code          : str | None = None
     
@@ -27,12 +24,6 @@ class AthleteBase(BaseModel):
     email_verified       : bool | None = False
     is_active            : bool | None = True
     is_superuser         : bool | None = False
-
-# class PhoneNumber(BaseModel):
-#     athlete_id           : str
-#     fcenter_id
-#     country_code_id
-#     phone_number
 
 # Athlete entity - Properties to receive via API on creation
 class AthleteCreate(AthleteBase):
@@ -43,11 +34,13 @@ class AthleteCreate(AthleteBase):
     
 # Athlete entity - Properties to receive via API on update
 class AthleteUpdate(AthleteBase):
+    phone                : PhoneNumberBase | None = None
     password             : str | None = None
     
     
 class AthleteInDBBase(AthleteBase):
     id                 : uuid.UUID
+    phone_id           : int | None = None
     class Config:
         orm_mode = True
 

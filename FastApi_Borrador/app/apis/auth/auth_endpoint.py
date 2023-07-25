@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -17,7 +17,9 @@ from utils.utils import (
     verify_password_reset_token,
 )
 
-router = APIRouter()
+router = APIRouter (prefix="/auth",
+                    tags=["Auth"],
+                    responses={status.HTTP_404_NOT_FOUND: {"message": "No encontrado"}})
 
 
 @router.post("/login/access-token", response_model=schemas.Token)

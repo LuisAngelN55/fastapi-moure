@@ -65,7 +65,7 @@ class Phones(Base):
                                 CheckConstraint('num_nonnulls(athlete_id, fcenter_id) > 0'),
                             )
 
-    id                    = Column(Integer, primary_key=True)
+    id                    = Column(Integer, primary_key=True, autoincrement=True)
     athlete_id            = Column(UUID(as_uuid=True), ForeignKey('athletes.id'))
     fcenter_id            = Column(Integer, ForeignKey('fitness_centers.id'))
     country_code_id       = Column(String(4), ForeignKey('country_codes.code'))

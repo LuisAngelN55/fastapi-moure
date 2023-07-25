@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import Any, List
-from schemas import athletes_schema
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm 
-from schemas import athletes_schema
+from typing import Any
+from schemas import athletes_schema, phones_schema
 from sqlalchemy.orm import Session
 from apis import deps
 from core.config import settings
 from core import security
 import schemas
+from apis.athletes.crud_PhoneNumber import phones
 from utils.utils import send_new_account_email
 import uuid
+from apis.athletes.crud_PhoneNumber import phones
 
 
 from apis.athletes import crud
@@ -62,16 +62,25 @@ async def create_athlete(
     return athlete
 
 
-@router.get('/test')
-async def test():
-    token = deps.reusable_oauth2
-    payload = jwt.decode(
-    token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
-    )
-    token_data = schemas.TokenPayload(**payload)
-    print(token)
-    # print(payload)
-    return token
+@router.get('/test-phone', response_model=schemas.PhoneNumber)
+async def test(
+    phone_id : str,
+    db: Session = Depends(deps.get_db)):
+    # phone = phones.get_by_id(db=db, id=phone_id)
+    phone = phones.get_by_athlete(db=db, athlete_id=phone_id )
+    
+    return phone
+
+
+@router.post('/test-phone', response_model=schemas.PhoneNumber)
+async def create_phone(
+    phone_in : schemas.phones_schema.PhoneNumberSchemaIn,
+    db: Session = Depends(deps.get_db)):
+    # phone = phones.get_by_id(db=db, id=phone_id)
+    # phone = phones.get_by_athlete(db=db, athlete_id=phone_id )
+    
+    phone = phones.create(db, obj_in=phone_in)
+    return phone
 
 
 @router.get("/me", response_model=schemas.Athlete)
@@ -124,6 +133,12 @@ def update_athlete(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="The user with this username does not exist in the system",
+        )
+        
+    if phones.get_by_number(db, phone_number=athlete_in.phone.phone_number, country_code=athlete_in.phone.country_code_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Phone number already in use",
         )
     
     if athlete == current_athlete or crud.athletes.is_superuser(current_athlete):

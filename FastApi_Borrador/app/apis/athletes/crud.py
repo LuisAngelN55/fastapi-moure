@@ -1,18 +1,20 @@
 from typing import Any, Dict, Optional, Union
-
+from db.database import SessionLocal
 from sqlalchemy.orm import Session
 from datetime import datetime
 from core.security import get_password_hash, verify_password
 from apis.crud_base import CRUDBase
 from models.athletes_info import Athletes
 from schemas.athletes_schema import AthleteCreate, AthleteUpdate
+from schemas.phones_schema import PhoneNumberSchemaIn
+from apis.athletes.crud_PhoneNumber import phones
 
 class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
     def get_by_email(self, db: Session, *, email: str) -> Optional[Athletes]:
         return db.query(Athletes).filter(Athletes.email == email).first()
     
-    def get_by_uuid(self, db: Session, *, uuid: str) -> Optional[Athletes]:
-        return db.query(Athletes).filter(Athletes.uuid == uuid).first()
+    def get_by_id(self, db: Session, *, id: str) -> Optional[Athletes]:
+        return db.query(Athletes).filter(Athletes.id == id).first()
     
     def get_by_username(self, db: Session, *, username: str) -> Optional[Athletes]:
         return db.query(Athletes).filter(Athletes.username == username).first()
@@ -51,8 +53,17 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
                 del update_data["password"]
                 update_data["hashed_password"] = hashed_password
         
+
+        if "phone" in update_data:
+            phone_in = PhoneNumberSchemaIn(**update_data["phone"])
+            
+            phoneBD = phones.create(db, obj_in= phone_in)
+            update_data["phone_id"] = phoneBD.id
+            del update_data["phone"]
+        
         if "is_superuser" in update_data:
             del update_data["is_superuser"]
+  
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
     def authenticate(self, db: Session, *, email: str, password: str) -> Optional[Athletes]:
