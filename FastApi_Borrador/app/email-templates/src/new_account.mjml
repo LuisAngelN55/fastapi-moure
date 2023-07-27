@@ -1,14 +1,65 @@
 <mjml>
+  
+    <mj-head>
+    <mj-attributes>
+      <mj-class name="general-text" color="black" font-size="16px" font-family="Roboto"/>
+    </mj-attributes>
+    <mj-style>
+      .spam-links {
+        padding: 0px 5px;
+        font-family: Roboto;
+      color: red;
+      font-weight: bold;
+      }
+    </mj-style>
+  </mj-head>
+  
+  
   <mj-body background-color="#fff">
+    <mj-section padding-bottom="0px">
+      <mj-column>
+        <mj-text font-size="15px" color="#555" font-family="Roboto" align="center" padding-bottom="0px">
+          <h1>¡Bienvenido a {{ project_name }}!</h1>
+        </mj-text>
+        <mj-divider border-color="#FF0000" border-width="2px"></mj-divider>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="0px">
+      <mj-column>
+        <mj-text mj-class="general-text">
+          Es necesario que confirmes tu dirección de correo electrónico para habilitar tu cuenta, clic en el siguiente botón para confirmar.
+        </mj-text>
+        <mj-button padding="25px 0px" href="{{ link }}" background-color="#FF0000" font-size="20px" font-family="Roboto">Confirmar E-mail</mj-button>
+
+
+        <mj-text mj-class="general-text">Estos son los datos de cuenta:</mj-text>
+        <mj-text mj-class="general-text">E-mail: <b>{{ email }}</b></mj-text>
+        <mj-text mj-class="general-text">Username: <b>{{ username }}</b></mj-text>
+        <mj-text mj-class="general-text">Password: <b>{{ password }}</b></mj-text>
+        <mj-divider border-color="#FF0000" border-width="2px" />
+      </mj-column>
+    </mj-section>
+
     <mj-section>
       <mj-column>
-        <mj-divider border-color="#555"></mj-divider>
-        <mj-text font-size="20px" color="#555" font-family="helvetica">{{ project_name }} - New Account</mj-text>
-        <mj-text font-size="16px" color="#555">You have a new account:</mj-text>
-        <mj-text font-size="16px" color="#555">Username: {{ username }}</mj-text>
-        <mj-text font-size="16px" color="#555">Password: {{ password }}</mj-text>
-        <mj-button padding="50px 0px" href="{{ link }}">Go to Dashboard</mj-button>
-        <mj-divider border-color="#555" border-width="2px" />
+        <mj-image src="http://site.tryhard.app/wp-content/uploads/2023/04/TryHard_Logo.png" width="225px" alt="logo" href="https://site.tryhard.app/"></mj-image>
+
+        <mj-text align="center" font-size="16px">
+
+          <a href="https://site.tryhard.app/" target="_blank">
+            <spam class="spam-links">Web</spam>
+          </a>
+          |
+          <a href="https://tryhard.app" target="_blank">
+            <spam class="spam-links">App</spam>
+          </a>
+          |
+          <a href="mailto:support@tryhard.app" target="_blank">
+            <spam class="spam-links">Soporte</spam>
+          </a>
+
+        </mj-text>
       </mj-column>
     </mj-section>
   </mj-body>

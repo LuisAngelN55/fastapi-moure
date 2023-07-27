@@ -21,7 +21,13 @@ def send_email(
         subject=JinjaTemplate(subject_template),
         html=JinjaTemplate(html_template),
         mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
+        charset='utf8',
+        headers_encoding='utf8'
     )
+    print("fjfhjkljf")
+    print(message.charset)
+    print(message.headers_encoding)
+    print(message._headers)
     smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
     if settings.SMTP_SSL:
         smtp_options["ssl"] = True
@@ -77,6 +83,7 @@ def send_new_account_email(email_to: str, username: str, password: str) -> None:
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "new_account.html") as f:
         template_str = f.read()
     link = settings.SERVER_HOST
+    print(template_str)
     send_email(
         email_to=email_to,
         subject_template=subject,
