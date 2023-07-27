@@ -14,8 +14,8 @@ class Athletes(Base):
     
     # id                   = Column( BigInteger, Sequence('athletes_table_seq', start=1), autoincrement=True)
     id                 = Column( UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    username             = Column(String(50), nullable=False)
-    email                = Column(String(100), nullable=False)
+    username             = Column(String(50), nullable=False, unique=True)
+    email                = Column(String(100), nullable=False, unique=True)
     first_name           = Column(String(50))
     last_name            = Column(String(50))
     display_name         = Column(String(30))

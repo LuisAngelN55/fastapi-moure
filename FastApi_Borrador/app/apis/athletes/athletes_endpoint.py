@@ -37,6 +37,8 @@ async def create_athlete(
     # current_user: models.athletes_info = Depends(deps.get_current_active_superuser)
     ) -> Any:
 
+    athlete_in.email = athlete_in.email.lower()
+    athlete_in.username = athlete_in.username.lower()
 
     athlete = crud.athletes.get_by_email(db, email= athlete_in.email)
     if athlete:

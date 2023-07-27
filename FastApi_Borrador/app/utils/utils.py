@@ -6,7 +6,7 @@ from fastapi import HTTPException
 import emails
 from emails.template import JinjaTemplate
 from jose import jwt
-
+import requests
 from core.config import settings
 
 
@@ -21,13 +21,8 @@ def send_email(
         subject=JinjaTemplate(subject_template),
         html=JinjaTemplate(html_template),
         mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
-        charset='utf8',
-        headers_encoding='utf8'
     )
-    print("fjfhjkljf")
     print(message.charset)
-    print(message.headers_encoding)
-    print(message._headers)
     smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
     if settings.SMTP_SSL:
         smtp_options["ssl"] = True
@@ -36,7 +31,6 @@ def send_email(
     if settings.SMTP_PASSWORD:
         smtp_options["password"] = settings.SMTP_PASSWORD
     response = message.send(to=email_to, render=environment, smtp=smtp_options)
-    print(response.status_code)
     logging.info(f"send email result: {response}")
     if response.status_code != 250:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -56,7 +50,7 @@ def send_test_email(email_to: str) -> None:
     )
 
 
-def send_reset_password_email(email_to: str, email: str, token: str) -> None:
+def send_reset_password_email(email_to: str, username: str, email: str, token: str) -> None:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - Password recovery for user {email}"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html") as f:
@@ -69,7 +63,7 @@ def send_reset_password_email(email_to: str, email: str, token: str) -> None:
         html_template=template_str,
         environment={
             "project_name": settings.PROJECT_NAME,
-            "username": email,
+            "username": username,
             "email": email_to,
             "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
             "link": link,
@@ -80,10 +74,10 @@ def send_reset_password_email(email_to: str, email: str, token: str) -> None:
 def send_new_account_email(email_to: str, username: str, password: str) -> None:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - New account for user {username}"
-    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "new_account.html") as f:
+    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "new_account.html", encoding="utf-8") as f:
         template_str = f.read()
     link = settings.SERVER_HOST
-    print(template_str)
+    # print(template_str)
     send_email(
         email_to=email_to,
         subject_template=subject,
@@ -115,3 +109,41 @@ def verify_password_reset_token(token: str) -> Optional[str]:
         return decoded_token["sub"]
     except jwt.JWTError:
         return None
+    
+    
+    
+
+def google_get_tokens(*, code: str, redirect_uri: str) -> str:
+    # Reference: https://developers.google.com/identity/protocols/oauth2/web-server#obtainingaccesstokens
+    data = {
+        'code': code,
+        'client_id': settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+        'client_secret': settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
+        'redirect_uri': redirect_uri,
+        'grant_type': 'authorization_code'
+    }
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    response = requests.post(settings.GOOGLE_ACCESS_TOKEN_OBTAIN_URL, data=data, headers=headers)
+
+    if not response.ok:
+        raise HTTPException(status_code=400, detail=f'Failed to obtain access token from Google. {response.json()}')
+
+    tokens = {
+        "access_token" : response.json()['access_token'],
+        "refresh_token" : response.json()['refresh_token']
+    }
+
+    return tokens
+
+
+def google_get_user_info(*, access_token: str) -> Dict[str, Any]:
+    # Reference: https://developers.google.com/identity/protocols/oauth2/web-server#callinganapi
+    response = requests.get(
+        settings.GOOGLE_USER_INFO_URL,
+        params={'access_token': access_token }
+    )
+    if not response.ok:
+        # raise ValidationError('Failed to obtain user info from Google.')
+        return response.json()
+
+    return response.json()

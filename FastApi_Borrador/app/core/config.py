@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     API_V1_STR: str = "/api/v1"
     
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = ["http://localhost:5173"]
     
     # JWT Configuration
     JWT_ALGORITHM  : str = "HS256"
@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     SMTP_USER: Optional[str] = "listen@tryhard.app"
     SMTP_PASSWORD: Optional[str] = "Tr-Hd-2022*"
     EMAILS_FROM_EMAIL: Optional[EmailStr] = "listen@tryhard.app"
-    EMAILS_FROM_NAME: Optional[str] = "TryHard App"
+    EMAILS_FROM_NAME: Optional[str] = "TryHard App ⚡️"
 
     @validator("EMAILS_FROM_NAME")
     def get_project_name(cls, v: Optional[str], values: Dict[str, Any]) -> str:
@@ -53,6 +53,20 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr = "lang@zuntrix.com"
     FIRST_SUPERUSER_PASSWORD: str = "123456789"
     USERS_OPEN_REGISTRATION: bool = False
+    
+    
+    
+    
+    SOCIAL_AUTH_USER_FIELDS=['email','first_name','username','password']
+    SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "234710864201-7lac6uu9gvebilqdfg4quj2iq8l2upm5.apps.googleusercontent.com"
+    SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
+    # Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
+    SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+    ]
+    GOOGLE_ACCESS_TOKEN_OBTAIN_URL = 'https://oauth2.googleapis.com/token'
+    GOOGLE_USER_INFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 
 
