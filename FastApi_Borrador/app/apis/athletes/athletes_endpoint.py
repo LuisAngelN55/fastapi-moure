@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_jwt_auth import AuthJWT
 from typing import Any
 from schemas import athletes_schema, phones_schema
 from sqlalchemy.orm import Session
@@ -88,7 +89,7 @@ async def create_phone(
 @router.get("/me", response_model=schemas.Athlete)
 def read_athlete_me(
     db: Session = Depends(deps.get_db),
-    current_athlete: models.Athletes = Depends(deps.get_current_active_athlete),
+    current_athlete: models.Athletes = Depends(deps.get_current_active_athlete)
 ) -> Any:
     """
     Get current user.
@@ -137,13 +138,16 @@ def update_athlete(
             detail="The user with this username does not exist in the system",
         )
         
-    if phones.get_by_number(db, phone_number=athlete_in.phone.phone_number, country_code=athlete_in.phone.country_code_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Phone number already in use",
-        )
+    if athlete_in.phone:
+        if phones.get_by_number(db, phone_number=athlete_in.phone.phone_number, country_code=athlete_in.phone.country_code_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Phone number already in use",
+            )
     
     if athlete == current_athlete or crud.athletes.is_superuser(current_athlete):
+        athlete_in.first_name = athlete_in.first_name.capitalize()
+        athlete_in.last_name = athlete_in.last_name.capitalize()
         athlete = crud.athletes.update(db, db_obj=athlete, obj_in=athlete_in)
         return athlete
     

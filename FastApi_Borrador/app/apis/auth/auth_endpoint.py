@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from fastapi_jwt_auth import AuthJWT
 
@@ -43,8 +43,8 @@ def login_access_token(
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not crud.athletes.is_active(athlete):
         raise HTTPException(status_code=400, detail="Inactive user")
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     tokens = security.create_tokens(subject=str(athlete.id), Authorize=Authorize)
+    crud.athletes.update_connection(db=db, db_obj=athlete)
     print(tokens)
     return tokens
 
@@ -81,8 +81,12 @@ async def verify_email(token: str, db: Session = Depends(deps.get_db)):
 @router.get('/resend-confirmation-email/', response_class=responses.Response)
 async def resend_confirmation_email(email: str,db: Session = Depends(deps.get_db)):
     athlete = crud.athletes.get_by_email(db, email=email)
-    if athlete:
-        send_confirmation_email(athlete_id=str(athlete.id), email_to=email, username=athlete.username)
+    if not athlete:
+        raise HTTPException(
+        status_code=404,
+        detail=f"No hemos encontrado ningún athleta con el correo: {email}",
+    )
+    send_confirmation_email(athlete_id=str(athlete.id), email_to=email, username=athlete.username)
     return responses.Response('Email de confirmación de correo enviado', status_code=status.HTTP_200_OK)
 
 @router.post("/password-recovery/{email}", response_model=schemas.Msg)

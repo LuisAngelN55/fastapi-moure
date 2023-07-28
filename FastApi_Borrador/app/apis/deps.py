@@ -1,5 +1,5 @@
 from typing import Generator
-
+from fastapi_jwt_auth import AuthJWT
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
@@ -27,7 +27,7 @@ def get_db() -> Generator:
 
 
 def get_current_athlete(
-    db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
+    db: Session = Depends(get_db), token: str = Depends(reusable_oauth2), Authorize: AuthJWT = Depends()
 ) -> athletes_info.Athletes:
     
     try:
