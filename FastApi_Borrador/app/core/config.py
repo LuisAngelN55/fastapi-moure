@@ -1,5 +1,6 @@
 from typing import List, Optional, Dict, Any
 from pydantic import BaseSettings, AnyHttpUrl, EmailStr, validator
+from pydantic import BaseModel
 
 
 
@@ -72,4 +73,23 @@ class Settings(BaseSettings):
 
 
 
+class JWT_Settings(BaseModel):
+    authjwt_secret_key: str = "D86201963E5A3EA328FC093B8F8D6AABC464049810BAE84D6D7C9964319D24AF"
+    authjwt_algorithm: str = "HS256"
+    
+    # How long an access token should live before it expires.
+    # This takes value integer (seconds) or datetime.timedelta, and defaults to 15 minutes.
+    # Can be set to False to disable expiration.
+    # seg * min
+    authjwt_access_token_expires : int = 60 * 0.5
+    
+    # How long an refresh token should live before it expires.
+    # This takes value integer (seconds) or datetime.timedelta, and defaults to 30 days.
+    # Can be set to False to disable expiration.
+    # seg * min * horas * dias
+    authjwt_refresh_token_expires : int = 60 * 60 * 24 * 10
+    
+
 settings = Settings()
+
+jwt_settings = JWT_Settings()

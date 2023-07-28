@@ -1,4 +1,7 @@
 from datetime import timedelta
+
+from fastapi_jwt_auth import AuthJWT
+
 from typing import Any
 import urllib
 from fastapi import APIRouter, Body, Depends, HTTPException, status, Request, responses
@@ -8,7 +11,7 @@ import models, schemas
 from apis import deps
 from apis.athletes import crud
 from core import security
-from core.config import settings
+from core.config import settings, jwt_settings
 from core.security import get_password_hash
 from utils.utils import (
     generate_password_reset_token,
@@ -25,9 +28,10 @@ router = APIRouter (prefix="/auth",
                     responses={status.HTTP_404_NOT_FOUND: {"message": "No encontrado"}})
 
 
+
 @router.post("/login/access-token", response_model=schemas.Token)
 def login_access_token(
-    db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
+    db: Session = Depends(deps.get_db), Authorize: AuthJWT = Depends(), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests
@@ -40,12 +44,9 @@ def login_access_token(
     elif not crud.athletes.is_active(athlete):
         raise HTTPException(status_code=400, detail="Inactive user")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return {
-        "access_token": security.create_access_token(
-            athlete.id, expires_delta=access_token_expires
-        ),
-        "token_type": "bearer",
-    }
+    tokens = security.create_tokens(subject=str(athlete.id), Authorize=Authorize)
+    print(tokens)
+    return tokens
 
 
 @router.post("/login/test-token", response_model=schemas.Athlete)
