@@ -12,7 +12,9 @@ class Settings(BaseSettings):
 
     API_V1_STR: str = "/api/v1"
     
+    
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = ["http://localhost:5173"]
+    FRONTEND_BASE_URL: AnyHttpUrl = "http://localhost:5173/"
     
     # JWT Configuration
     JWT_ALGORITHM  : str = "HS256"

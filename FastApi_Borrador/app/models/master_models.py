@@ -6,8 +6,6 @@ from datetime import datetime
 from sqlalchemy.dialects.postgresql import UUID
 
 
-
-
 ## * ------------------- BLOOD TYPES MODEL ------------------- ##
 class Blood_Types(Base):
     __tablename__    = "blood_types"

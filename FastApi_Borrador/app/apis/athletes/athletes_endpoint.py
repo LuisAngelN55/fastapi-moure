@@ -58,7 +58,7 @@ async def create_athlete(
     athlete = (crud.athletes.create(db, obj_in=athlete_in))
     if settings.EMAILS_ENABLED and athlete_in.email:
         send_new_account_email(
-            email_to=athlete_in.email, username=athlete_in.username, password=athlete_in.password
+            athlete_id=str(athlete.id), email_to=athlete_in.email, username=athlete_in.username, password=athlete_in.password
         )
     
     return athlete

@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Any
-
-from fastapi import APIRouter, Body, Depends, HTTPException, status, Request
+import urllib
+from fastapi import APIRouter, Body, Depends, HTTPException, status, Request, responses
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import models, schemas
@@ -15,7 +15,9 @@ from utils.utils import (
     send_reset_password_email,
     verify_password_reset_token,
     google_get_tokens,
-    google_get_user_info
+    google_get_user_info,
+    generate_email_verification_token,
+    send_confirmation_email
 )
 
 router = APIRouter (prefix="/auth",
@@ -54,6 +56,33 @@ def test_token(current_user: models.Athletes = Depends(deps.get_current_athlete)
     return current_user
 
 
+@router.get('/verify-email/{token}', response_class=responses.RedirectResponse)
+async def verify_email(token: str, db: Session = Depends(deps.get_db)):
+    email = verify_password_reset_token(token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    athlete = crud.athletes.get_by_email(db, email=email)
+    if not athlete:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this username does not exist in the system.",
+        )
+    athlete.is_active = True
+    athlete.email_verified = True
+    db.add(athlete)
+    db.commit()
+    params = {'username':athlete.username, 'email':athlete.email,}
+    quoted_params = urllib.parse.urlencode(params)
+
+    return responses.RedirectResponse(f'{settings.FRONTEND_BASE_URL}auth/login/email-verified?{quoted_params}', status_code=303)
+    
+
+@router.get('/resend-confirmation-email/', response_class=responses.Response)
+async def resend_confirmation_email(email: str,db: Session = Depends(deps.get_db)):
+    athlete = crud.athletes.get_by_email(db, email=email)
+    if athlete:
+        send_confirmation_email(athlete_id=str(athlete.id), email_to=email, username=athlete.username)
+    return responses.Response('Email de confirmación de correo enviado', status_code=status.HTTP_200_OK)
 
 @router.post("/password-recovery/{email}", response_model=schemas.Msg)
 def recover_password(email: str, db: Session = Depends(deps.get_db)) -> Any:
