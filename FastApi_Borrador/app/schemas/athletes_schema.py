@@ -4,6 +4,10 @@ from schemas.phones_schema import PhoneNumberBase
 import uuid
 
 
+class AthleteLogin(BaseModel):
+    email                : str
+    password             : str
+
 # Athlete entity - Shared properties
 class AthleteBase(BaseModel):
     username             : str | None = None

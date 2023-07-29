@@ -65,6 +65,12 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
             del update_data["is_superuser"]
   
         return super().update(db, db_obj=db_obj, obj_in=update_data)
+    
+    
+    def update_connection(self, db: Session, *, db_obj: Athletes) -> Athletes:
+        update_data = { "last_connection" : datetime.now() }
+        return super().update(db, db_obj=db_obj, obj_in=update_data)
+    
 
     def authenticate(self, db: Session, *, email: str, password: str) -> Optional[Athletes]:
         athlete = self.get_by_email(db, email=email)
