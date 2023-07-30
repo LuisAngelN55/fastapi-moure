@@ -31,7 +31,8 @@ router = APIRouter (prefix="/auth",
 
 @router.post("/login/access-token", response_model=schemas.Token)
 def login_access_token(
-    db: Session = Depends(deps.get_db), Authorize: AuthJWT = Depends(), form_data: OAuth2PasswordRequestForm = Depends()
+    db: Session = Depends(deps.get_db), Authorize: AuthJWT = Depends(),
+    form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests
@@ -75,7 +76,7 @@ async def verify_email(token: str, db: Session = Depends(deps.get_db)):
     params = {'username':athlete.username, 'email':athlete.email,}
     quoted_params = urllib.parse.urlencode(params)
 
-    return responses.RedirectResponse(f'{settings.FRONTEND_BASE_URL}auth/login/email-verified?{quoted_params}', status_code=303)
+    return responses.RedirectResponse(f'{settings.FRONTEND_BASE_URL}{athlete.username}/email-verified?{quoted_params}', status_code=303)
     
 
 @router.get('/resend-confirmation-email/', response_class=responses.Response)
