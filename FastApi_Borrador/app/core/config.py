@@ -81,12 +81,14 @@ class JWT_Settings(BaseModel):
     # This takes value integer (seconds) or datetime.timedelta, and defaults to 15 minutes.
     # Can be set to False to disable expiration.
     # seg * min
+    # authjwt_access_token_expires : int = 3
     authjwt_access_token_expires : int = 60 * 15
     
     # How long an refresh token should live before it expires.
     # This takes value integer (seconds) or datetime.timedelta, and defaults to 30 days.
     # Can be set to False to disable expiration.
     # seg * min * horas * dias
+    # authjwt_refresh_token_expires : int = 15
     authjwt_refresh_token_expires : int = 60 * 60 * 24 * 10
     
 

@@ -36,10 +36,18 @@ def get_current_athlete(
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
         )
         token_data = tokenSchema.TokenPayload(**payload)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Signature has expired",
+        )
     except (jwt.JWTError, ValidationError):
+        print(ValidationError.__context__)
+        print(jwt.JWTError)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
+            
         )
 
     athlete = crud.athletes.get(db, id=token_data.sub)

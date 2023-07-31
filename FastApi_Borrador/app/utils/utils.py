@@ -55,8 +55,8 @@ def send_reset_password_email(email_to: str, username: str, email: str, token: s
     subject = f"Has solicitado reiniciar tu contraseña {project_name}"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html") as f:
         template_str = f.read()
-    server_host = settings.SERVER_HOST
-    link = f"{server_host}/reset-password?token={token}"
+    server_frontend = settings.FRONTEND_BASE_URL
+    link = f"{server_frontend}auth/password-recovery?token={token}"
     send_email(
         email_to=email_to,
         subject_template=subject,

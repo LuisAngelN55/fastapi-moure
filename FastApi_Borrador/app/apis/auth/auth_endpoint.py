@@ -29,6 +29,8 @@ router = APIRouter (prefix="/auth",
 
 
 
+
+## * ------------------- LOGIN Email/Password ------------------- ##
 @router.post("/login/access-token", response_model=schemas.Token)
 def login_access_token(
     db: Session = Depends(deps.get_db), Authorize: AuthJWT = Depends(),
@@ -49,7 +51,30 @@ def login_access_token(
     print(tokens)
     return tokens
 
+## * ------------------- Refresh Token ------------------- ##
+@router.post('/refresh-token')
+def refresh_token(request: Request, Authorize: AuthJWT = Depends()):
+    """
+    The jwt_refresh_token_required() function insures a valid refresh
+    token is present in the request before running any code below that function.
+    we can use the get_jwt_subject() function to get the subject of the refresh
+    token, and use the create_access_token() function again to make a new access token
+    """
+    # print(Authorize._get_jwt_from_headers)
+    refresh_token = request.headers.get('authorization')
+    print(request.headers)
+    # ass = Authorize._verified_token(refresh_token)
+    # print(f'ASSSSS------ {ass}')
+    Authorize.jwt_refresh_token_required()
 
+    current_user = Authorize.get_jwt_subject()
+    new_access_token = Authorize.create_access_token(subject=current_user)
+    print(new_access_token)
+    return {"access_token": new_access_token}
+
+
+
+## * ------------------- TEST ------------------- ##
 @router.post("/login/test-token", response_model=schemas.Athlete)
 def test_token(current_user: models.Athletes = Depends(deps.get_current_athlete)) -> Any:
     """
@@ -58,6 +83,7 @@ def test_token(current_user: models.Athletes = Depends(deps.get_current_athlete)
     return current_user
 
 
+## * ------------------- Verify Eamil ------------------- ##
 @router.get('/verify-email/{token}', response_class=responses.RedirectResponse)
 async def verify_email(token: str, db: Session = Depends(deps.get_db)):
     email = verify_password_reset_token(token)
@@ -78,7 +104,9 @@ async def verify_email(token: str, db: Session = Depends(deps.get_db)):
 
     return responses.RedirectResponse(f'{settings.FRONTEND_BASE_URL}{athlete.username}/email-verified?{quoted_params}', status_code=303)
     
-
+    
+    
+## * ------------------- Resend Confirmation Email ------------------- ##
 @router.get('/resend-confirmation-email/', response_class=responses.Response)
 async def resend_confirmation_email(email: str,db: Session = Depends(deps.get_db)):
     athlete = crud.athletes.get_by_email(db, email=email)
@@ -90,6 +118,9 @@ async def resend_confirmation_email(email: str,db: Session = Depends(deps.get_db
     send_confirmation_email(athlete_id=str(athlete.id), email_to=email, username=athlete.username)
     return responses.Response('Email de confirmación de correo enviado', status_code=status.HTTP_200_OK)
 
+
+
+## * ------------------- Password Recovery ------------------- ##
 @router.post("/password-recovery/{email}", response_model=schemas.Msg)
 def recover_password(email: str, db: Session = Depends(deps.get_db)) -> Any:
     """
@@ -110,6 +141,8 @@ def recover_password(email: str, db: Session = Depends(deps.get_db)) -> Any:
     return {"msg": "Password recovery email sent"}
 
 
+
+## * ------------------- Reset Password ------------------- ##
 @router.post("/reset-password/", response_model=schemas.Msg)
 def reset_password(
     token: str = Body(...),
@@ -137,6 +170,7 @@ def reset_password(
     return {"msg": "Password updated successfully"}
 
 
+## * ------------------- Google Social Login ------------------- ##
 @router.post('/login-google')
 async def google_login(google_code: str | None = None):
     if google_code:
