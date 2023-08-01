@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime
-
+from random  import randint
 from fastapi_jwt_auth import AuthJWT
 
 from typing import Any
@@ -20,7 +20,8 @@ from utils.utils import (
     google_get_tokens,
     google_get_user_info,
     generate_email_verification_token,
-    send_confirmation_email
+    send_confirmation_email,
+    generate_random_password
 )
 
 router = APIRouter (prefix="/auth",
@@ -102,7 +103,7 @@ async def verify_email(token: str, db: Session = Depends(deps.get_db)):
     params = {'username':athlete.username, 'email':athlete.email,}
     quoted_params = urllib.parse.urlencode(params)
 
-    return responses.RedirectResponse(f'{settings.FRONTEND_BASE_URL}{athlete.username}/email-verified?{quoted_params}', status_code=303)
+    return responses.RedirectResponse(f'{settings.FRONTEND_BASE_URL}auth/email-verified?{quoted_params}', status_code=303)
     
     
     
@@ -172,12 +173,60 @@ def reset_password(
 
 ## * ------------------- Google Social Login ------------------- ##
 @router.post('/login-google')
-async def google_login(google_code: str | None = None):
-    if google_code:
-        redirect_uri= "http://localhost:5173/auth/social-login"
-        tokens = google_get_tokens(code=google_code, redirect_uri=redirect_uri)
-        access_token = tokens['access_token']
+async def google_login(google_code: str | None = None, db: Session = Depends(deps.get_db), Authorize: AuthJWT = Depends()):
+    if not google_code:
+        raise HTTPException(status_code=400, detail="Google Code not received")
+    
+    redirect_uri= "http://localhost:5173/auth/social-login"
+    tokens = google_get_tokens(code=google_code, redirect_uri=redirect_uri)
+    access_token = tokens['access_token']
+    
+    userdata_from_google = google_get_user_info(access_token = access_token)
+    print(userdata_from_google)
+    
+    athlete_google = crud.athletes.get_by_email(db, email=userdata_from_google['email'])
+    
+    if not athlete_google:
+        athlete_in = schemas.athletes_schema.AthleteCreate(
+            email            = userdata_from_google['email'],
+            username         = userdata_from_google['email'][ 0 : userdata_from_google['email'].index('@') ] + str(randint(0,999)),
+            password         = generate_random_password(),
+            google_sub       = userdata_from_google["sub"],
+            first_name       = userdata_from_google["name"],
+            last_name        = userdata_from_google["family_name"],
+            display_name     = userdata_from_google["given_name"],
+            photo_url        = userdata_from_google["picture"],
+            
+            email_verified   = True,
+            last_connection  = datetime.now()
+        )
+
+        athlete =  crud.athletes.create(db, obj_in=athlete_in)
+        tokens = security.create_tokens(subject=str(athlete.id), Authorize=Authorize)
+        return tokens
+    
+    
+    if athlete_google and not athlete_google.google_sub:
+        athlete_in: models.Athletes = {
+            "google_sub"       : userdata_from_google["sub"],
+            "first_name"       : userdata_from_google["name"],
+            "last_name"        : userdata_from_google["family_name"],
+            "display_name"     : userdata_from_google["given_name"],
+            "photo_url"        : userdata_from_google["picture"],
+        }
+        for attr_db, value in athlete_google.__dict__.items():
+            if value and attr_db in athlete_in:
+                del athlete_in[attr_db] 
         
-        userdata_from_google = google_get_user_info(access_token = access_token)
-        print(userdata_from_google)
+        athlete_in['email_verified'] = True
+        athlete_in['last_connection'] = datetime.now()
+        athlete = crud.athletes.update(db, db_obj=athlete_google, obj_in=athlete_in)
+        tokens = security.create_tokens(subject=str(athlete.id), Authorize=Authorize)
+        
+        return tokens
+        
+        
+    tokens = security.create_tokens(subject=str(athlete_google.id), Authorize=Authorize)
+    return tokens
+        
     return google_code

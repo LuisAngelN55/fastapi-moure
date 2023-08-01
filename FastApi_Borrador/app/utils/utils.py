@@ -8,6 +8,8 @@ from emails.template import JinjaTemplate
 from jose import jwt
 import requests
 from core.config import settings
+import random
+import string
 
 
 def send_email(
@@ -186,3 +188,10 @@ def google_get_user_info(*, access_token: str) -> Dict[str, Any]:
         return response.json()
 
     return response.json()
+
+
+
+def generate_random_password(length=10):
+    characters = string.ascii_letters + "." + "$" + string.digits
+    password = ''.join(random.choice(characters) for _ in range(length))
+    return password

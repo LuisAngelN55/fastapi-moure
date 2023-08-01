@@ -35,6 +35,9 @@ class Athletes(Base):
     phone_id             = Column(Integer, ForeignKey('phones.id'))
     gender_code          = Column(String(4), ForeignKey('gender_codes.code'))
     
+    google_sub           = Column(String(255), unique=True)
+    facebook_sub         = Column(String(255), unique=True)
+    
     phones               = relationship('Phones', backref='athletes', foreign_keys=[phone_id])
 
 

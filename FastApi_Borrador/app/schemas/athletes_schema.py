@@ -28,6 +28,8 @@ class AthleteBase(BaseModel):
     email_verified       : bool | None = False
     is_active            : bool | None = True
     is_superuser         : bool | None = False
+    google_sub           : str | None = None
+    facebook_sub         : str | None = None
 
 # Athlete entity - Properties to receive via API on creation
 class AthleteCreate(AthleteBase):
@@ -43,8 +45,8 @@ class AthleteUpdate(AthleteBase):
     
     
 class AthleteInDBBase(AthleteBase):
-    id                 : uuid.UUID
-    phone_id           : int | None = None
+    id                   : uuid.UUID
+    phone_id             : int | None = None
     class Config:
         orm_mode = True
 

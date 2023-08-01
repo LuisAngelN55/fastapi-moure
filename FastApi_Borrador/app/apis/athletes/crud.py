@@ -25,12 +25,18 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
             email            = obj_in.email,
             hashed_password  = get_password_hash(obj_in.password),
             username         = obj_in.username, 
-            display_name     = obj_in.username,
             created_date     = datetime.now(),
             last_connection  = datetime.now(),
             is_active        = True,
-            email_verified   = False,
             is_superuser     = False,
+            
+            first_name        = obj_in.first_name or None,
+            last_name        = obj_in.last_name or None,
+            display_name     = obj_in.display_name or obj_in.username,
+            email_verified   = obj_in.email_verified or False,
+            google_sub       = obj_in.google_sub or None,
+            facebook_sub       = obj_in.facebook_sub or None,
+            photo_url        = obj_in.photo_url or None,
         )
         db.add(db_obj)
         db.commit()
