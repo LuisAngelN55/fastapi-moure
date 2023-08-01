@@ -42,8 +42,6 @@ def get_current_athlete(
             detail="Signature has expired",
         )
     except (jwt.JWTError, ValidationError):
-        print(ValidationError.__context__)
-        print(jwt.JWTError)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",

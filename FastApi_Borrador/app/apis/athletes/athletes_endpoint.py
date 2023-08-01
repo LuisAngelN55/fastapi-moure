@@ -13,7 +13,7 @@ import uuid
 from apis.athletes.crud_PhoneNumber import phones
 
 
-from apis.athletes import crud
+from apis.athletes import crud, crud_PhoneNumber
 import models
 
 from jose import jwt
@@ -94,6 +94,9 @@ def read_athlete_me(
     """
     Get current user.
     """
+    phone_number = crud_PhoneNumber.phones.get_by_athlete(db, athlete_id=current_athlete.id)
+    # full_athlete = schemas.AthleteOut(id=current_athlete.id)
+    # full_athlete['phone_number'] = phone_number
     return current_athlete
 
 

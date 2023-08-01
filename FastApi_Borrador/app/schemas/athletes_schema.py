@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date, datetime
-from schemas.phones_schema import PhoneNumberBase
+from schemas.phones_schema import PhoneNumberBase, PhoneNumber
 import uuid
 
 
@@ -55,6 +55,8 @@ class AthleteInDBBase(AthleteBase):
 class Athlete(AthleteInDBBase):
     pass
 
+class AthleteOut(Athlete):
+    phone_number: PhoneNumber
 
 # Additional properties stored in DB
 class AthleteInDB(AthleteInDBBase):

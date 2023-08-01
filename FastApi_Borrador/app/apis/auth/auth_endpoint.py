@@ -49,7 +49,6 @@ def login_access_token(
         raise HTTPException(status_code=400, detail="Inactive user")
     tokens = security.create_tokens(subject=str(athlete.id), Authorize=Authorize)
     crud.athletes.update_connection(db=db, db_obj=athlete)
-    print(tokens)
     return tokens
 
 ## * ------------------- Refresh Token ------------------- ##
@@ -61,16 +60,12 @@ def refresh_token(request: Request, Authorize: AuthJWT = Depends()):
     we can use the get_jwt_subject() function to get the subject of the refresh
     token, and use the create_access_token() function again to make a new access token
     """
-    # print(Authorize._get_jwt_from_headers)
     refresh_token = request.headers.get('authorization')
-    print(request.headers)
-    # ass = Authorize._verified_token(refresh_token)
-    # print(f'ASSSSS------ {ass}')
+
     Authorize.jwt_refresh_token_required()
 
     current_user = Authorize.get_jwt_subject()
     new_access_token = Authorize.create_access_token(subject=current_user)
-    print(new_access_token)
     return {"access_token": new_access_token}
 
 
@@ -182,7 +177,6 @@ async def google_login(google_code: str | None = None, db: Session = Depends(dep
     access_token = tokens['access_token']
     
     userdata_from_google = google_get_user_info(access_token = access_token)
-    print(userdata_from_google)
     
     athlete_google = crud.athletes.get_by_email(db, email=userdata_from_google['email'])
     

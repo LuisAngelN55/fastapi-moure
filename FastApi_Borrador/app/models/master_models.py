@@ -138,8 +138,34 @@ class Genders(Base):
     lang_code        = Column(String(3), ForeignKey('language_codes.code'))
     gender_code      = Column(String(8), ForeignKey('gender_codes.code'))
     desc             = Column(String(20), nullable=False)
+    
+    
 
+## * ------------------- ROLE TYPES CODES MODEL ------------------- ##
+class Role_Type_Codes(Base):
+    __tablename__    = "role_types_codes"
+    
+    id                       = Column(SmallInteger, primary_key=True)
+    code                     = Column(String(8), unique=True)
+    is_active                = Column(Boolean, nullable=False)
+    
+    athletes_fitness_center  = relationship('Relation_Athlete_FCenter', backref="role_types_codes")
+    role_desc                = relationship('Role_Types', backref="role_types_codes")
+    
+    
+
+## * ------------------- ROLE TYPES NAMES MODEL ------------------- ##S
+class Role_Types(Base):
+    __tablename__    = "role_types"
+    __table_args__ = (UniqueConstraint('lang_code', 'role_type_id', name='unique_role_type'), )
+
+    
+    id               = Column(SmallInteger, primary_key=True)
+    lang_code        = Column(String(3), ForeignKey('language_codes.code'))
+    role_type_id     = Column(Integer, ForeignKey('role_types_codes.id'))
+    desc             = Column(String(20), nullable=False)
 
 
 # server_default=Sequence('mdata_translations_seq', start=1).next_value()
 # __table_args__ = (UniqueConstraint('table_name', 'row_id', 'language_code', name='unique_translations'), )
+

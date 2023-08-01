@@ -77,3 +77,23 @@ class Phones(Base):
     athlete               = relationship('Athletes', foreign_keys=[athlete_id])
     fcenter               = relationship('Fitness_Centers', foreign_keys=[fcenter_id])
     
+    
+
+## * ------------------- ATHLETES FITNESS CENTER REL MODEL ------------------- ##
+class Relation_Athlete_FCenter(Base): 
+    __tablename__         = 'relation_athlete_fcenter'
+    __table_args__        = (
+                                UniqueConstraint('athlete_id', 'fcenter_id', name='unique_athlete_relation'),
+                            )
+
+    id                    = Column(Integer, primary_key=True, autoincrement=True)
+    athlete_id            = Column(UUID(as_uuid=True), ForeignKey('athletes.id'), nullable=False)
+    fcenter_id            = Column(Integer, ForeignKey('fitness_centers.id'), nullable=False)
+    role_type_id          = Column(Integer, ForeignKey('role_types_codes.id'), nullable=False)
+
+    
+    created_date          = Column(DateTime(timezone=True), default= datetime.now(), server_default=func.now(), nullable=False)
+    
+    athlete               = relationship('Athletes', foreign_keys=[athlete_id])
+    fcenter               = relationship('Fitness_Centers', foreign_keys=[fcenter_id])
+    
