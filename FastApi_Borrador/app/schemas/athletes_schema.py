@@ -55,9 +55,10 @@ class AthleteInDBBase(AthleteBase):
 class Athlete(AthleteInDBBase):
     pass
 
-class AthleteOut(Athlete):
-    phone_number: PhoneNumber
+class AthleteOut(AthleteBase):
+    id                   : uuid.UUID
+    phone_number         : PhoneNumber | None = None
 
 # Additional properties stored in DB
 class AthleteInDB(AthleteInDBBase):
-    hashed_password: str
+    hashed_password      : str

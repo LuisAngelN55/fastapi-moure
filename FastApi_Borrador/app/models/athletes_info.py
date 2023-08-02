@@ -69,9 +69,10 @@ class Phones(Base):
                             )
 
     id                    = Column(Integer, primary_key=True, autoincrement=True)
-    athlete_id            = Column(UUID(as_uuid=True), ForeignKey('athletes.id'))
-    fcenter_id            = Column(Integer, ForeignKey('fitness_centers.id'))
+    athlete_id            = Column(UUID(as_uuid=True), ForeignKey('athletes.id'), unique=True)
+    fcenter_id            = Column(Integer, ForeignKey('fitness_centers.id'), unique=True)
     country_code_id       = Column(String(4), ForeignKey('country_codes.code'))
+    dial_code             = Column(String(5), nullable= False)
     phone_number          = Column(String(15), nullable=False)
     
     athlete               = relationship('Athletes', foreign_keys=[athlete_id])

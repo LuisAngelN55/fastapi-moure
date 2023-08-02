@@ -11,6 +11,7 @@ from apis.athletes.crud_PhoneNumber import phones
 from utils.utils import send_new_account_email
 import uuid
 from apis.athletes.crud_PhoneNumber import phones
+from utils.utils import convert_athletedb_athleteout
 
 
 from apis.athletes import crud, crud_PhoneNumber
@@ -86,18 +87,16 @@ async def create_phone(
     return phone
 
 
-@router.get("/me", response_model=schemas.Athlete)
+@router.get("/me", response_model=schemas.AthleteOut)
 def read_athlete_me(
     db: Session = Depends(deps.get_db),
     current_athlete: models.Athletes = Depends(deps.get_current_active_athlete)
-) -> Any:
+) -> schemas.AthleteOut:
     """
     Get current user.
     """
-    phone_number = crud_PhoneNumber.phones.get_by_athlete(db, athlete_id=current_athlete.id)
-    # full_athlete = schemas.AthleteOut(id=current_athlete.id)
-    # full_athlete['phone_number'] = phone_number
-    return current_athlete
+    athlete = convert_athletedb_athleteout(athletedb=current_athlete, db=db)
+    return athlete
 
 
 @router.get("/{athlete_id}", response_model=schemas.Athlete)
@@ -140,13 +139,24 @@ def update_athlete(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="The user with this username does not exist in the system",
         )
-        
+    
+    if crud.athletes.get_by_username(db, username= athlete_in.username) and athlete_in.username != athlete.username:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail=f'El nombre de usuario "{athlete_in.username}" ya esta en uso',
+        )
+    
+    print(f'ENDPOINT ATHLETE IN ------- {athlete_in}')
     if athlete_in.phone:
-        if phones.get_by_number(db, phone_number=athlete_in.phone.phone_number, country_code=athlete_in.phone.country_code_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Phone number already in use",
-            )
+        current_phone = phones.get_by_number(db, phone_number=athlete_in.phone.phone_number,country_code=athlete_in.phone.country_code_id)
+        if current_phone:
+            if current_phone.id != current_athlete.phone_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"El número de telefono {current_phone.phone_number} ya está siendo usado",
+                )
+            else: delattr(athlete_in, "phone")
+            
     
     if athlete == current_athlete or crud.athletes.is_superuser(current_athlete):
         athlete_in.first_name = athlete_in.first_name.capitalize()

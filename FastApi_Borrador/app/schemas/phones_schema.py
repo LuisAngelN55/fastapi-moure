@@ -7,6 +7,7 @@ class PhoneNumberBase(BaseModel):
     athlete_id           : uuid.UUID | None = None
     fcenter_id           : uuid.UUID | None = None
     country_code_id      : str
+    dial_code            : str
     phone_number         : str 
     
 

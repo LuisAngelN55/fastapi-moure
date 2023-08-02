@@ -2,7 +2,8 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
+from apis.deps import get_db
 import emails
 from emails.template import JinjaTemplate
 from jose import jwt
@@ -10,6 +11,11 @@ import requests
 from core.config import settings
 import random
 import string
+import schemas
+import models
+from apis.athletes import crud_PhoneNumber
+from sqlalchemy.orm import Session
+
 
 
 def send_email(
@@ -195,3 +201,38 @@ def generate_random_password(length=10):
     characters = string.ascii_letters + "." + "$" + string.digits
     password = ''.join(random.choice(characters) for _ in range(length))
     return password
+
+
+def convert_athletedb_athleteout(athletedb: models.Athletes, db: Session = Depends(get_db)) -> schemas.AthleteOut:
+    
+    if athletedb.phone_id:
+        phone = crud_PhoneNumber.phones.get_by_athlete(db=db, athlete_id=str(athletedb.id))
+    else: phone = None
+    
+    athlete = schemas.AthleteOut(
+        id                    = athletedb.id,
+        username              = athletedb.username,
+        email                 = athletedb.email,
+
+        first_name            = athletedb.first_name,
+        last_name             = athletedb.last_name,
+        display_name          = athletedb.display_name,
+        birthday              = athletedb.birthday,
+        photo_url             = athletedb.photo_url,
+
+        phone_number          = phone,
+        blood_type_id         = athletedb.blood_type_id,
+        nationality_code      = athletedb.nationality_code,
+        document_number_id    = athletedb.document_number_id,
+        gender_code           = athletedb.gender_code,
+
+        created_date          = athletedb.created_date,
+        last_connection       = athletedb.last_connection,
+        email_verified        = athletedb.email_verified,
+        is_active             = athletedb.is_active,
+        is_superuser          = athletedb.is_superuser,
+        google_sub            = athletedb.google_sub,
+        facebook_sub          = athletedb.facebook_sub,
+    )
+    print(athlete)
+    return athlete

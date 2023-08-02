@@ -8,6 +8,7 @@ from models.athletes_info import Athletes
 from schemas.athletes_schema import AthleteCreate, AthleteUpdate
 from schemas.phones_schema import PhoneNumberSchemaIn
 from apis.athletes.crud_PhoneNumber import phones
+from utils.utils_athletes import create_update_phone
 
 class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
     def get_by_email(self, db: Session, *, email: str) -> Optional[Athletes]:
@@ -51,6 +52,7 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
         else:
             update_data = obj_in.dict(exclude_unset=True)
         
+        print(f'UPPPPPDATEEE-_______-----   {update_data}')
         # Password in payload
         if "password" in update_data:
             # Password is not empty
@@ -62,10 +64,11 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
 
         if "phone" in update_data:
             phone_in = PhoneNumberSchemaIn(**update_data["phone"])
-            
-            phoneBD = phones.create(db, obj_in= phone_in)
-            update_data["phone_id"] = phoneBD.id
+            phoneDB = create_update_phone(db, phone_in, athlete_db=db_obj)
+            update_data["phone_id"] = phoneDB.id
             del update_data["phone"]
+            
+        
         
         if "is_superuser" in update_data:
             del update_data["is_superuser"]
