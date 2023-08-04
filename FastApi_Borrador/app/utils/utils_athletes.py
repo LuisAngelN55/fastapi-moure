@@ -40,7 +40,6 @@ def convert_athletedb_athleteout(athletedb: models.Athletes, db: Session) -> sch
         google_sub            = athletedb.google_sub,
         facebook_sub          = athletedb.facebook_sub,
     )
-    print(athlete)
     return athlete
 
 
@@ -56,7 +55,7 @@ def create_update_phone(db: Session, phone_in: PhoneNumberSchemaIn, athlete_db: 
     return phoneDB
 
 
-def resize_profile_image(filename: str, path: str) -> str:
+def resize_profile_image(filename: str, path: str, suffix: str) -> str:
     sizes = [{
         "width": 1280,
         "height": 720
@@ -74,12 +73,17 @@ def resize_profile_image(filename: str, path: str) -> str:
     #     image = Image.open(path + filename, mode="r")
     #     image.thumbnail(size_defined)
     #     image.save(path + str(size["height"]) + "_" + filename)
-
+    
+    new_filename: str | None = None
     size_defined = sizes[0].get("width"), sizes[0].get("height")     
     image = Image.open(path + filename, mode="r")
     image.thumbnail(size_defined)
-    image.save(path + str(sizes[0]["height"]) + "_" + filename)
-        
+
+    accepted_suffix = ['.jpg'] # ['.jpg', '.jpeg']
+    if suffix not in accepted_suffix:
+        image = image.convert('RGB')
+        new_filename = filename.replace(suffix, accepted_suffix[0] )
+    new_filename = new_filename if new_filename is not None else filename
+    image.save(path + str(sizes[0]["height"]) + "_" + new_filename)
     os.remove(path + filename)
-    print("success")
-    return (path + str(sizes[0]["height"]) + "_" + filename)
+    return (path + str(sizes[0]["height"]) + "_" + new_filename)

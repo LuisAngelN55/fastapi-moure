@@ -89,7 +89,12 @@ def read_athlete_me(
     """
     Get current user.
     """
-    athlete = convert_athletedb_athleteout(athletedb=current_athlete, db=db)
+    # athlete = convert_athletedb_athleteout(athletedb=current_athlete, db=db)
+    athlete = schemas.AthleteOut(**current_athlete.__dict__)
+    if current_athlete.phone_id:
+        phone = phones.get_by_athlete(db=db, athlete_id=str(current_athlete.id))
+    else: phone = None
+    athlete.phone_number = phone
     return athlete
 
 
@@ -159,7 +164,6 @@ def update_athlete(
         athlete_in.last_name = athlete_in.last_name.capitalize()
         athlete = crud.athletes.update(db, db_obj=athlete, obj_in=athlete_in)
         athlete_out = convert_athletedb_athleteout(athletedb=current_athlete, db=db)
-        print(f'ENDPOINT ATHLETE OUT ------- {athlete_out}')
         return athlete_out
     
     raise HTTPException(
@@ -191,10 +195,13 @@ async def upload_file(
             myfile.write(content)
             myfile.close()
         # background_task.add_task(resize_profile_image, filename = profile_image_name+image_suffix, path = profile_images_path)
-        image_path = await resize_profile_image(filename=profile_image_name+image_suffix, path=profile_images_path)
+        image_path = resize_profile_image(filename=profile_image_name+image_suffix, path=profile_images_path, suffix = image_suffix)
+        photo_url = f'{settings.SERVER_HOST}/{image_path}'
+        data_update_athlete = schemas.AthleteUpdate(**{ "photo_url": photo_url })
         
-        return JSONResponse(content={"msg": "success", "path": f'{settings.SERVER_HOST}/{photo_url}'})
-    
+        athlete = crud.athletes.update(db, db_obj=athlete, obj_in=data_update_athlete)
+        return JSONResponse(content={"msg": "success", "path": photo_url})
+
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="The user doesn't have enough privileges",

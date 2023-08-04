@@ -79,7 +79,6 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
         if "is_superuser" in update_data:
             del update_data["is_superuser"]
 
-        print(f'UPPPPPDATEEE-_______-----   {update_data}')
 
         return super().update(db, db_obj=db_obj, obj_in=update_data)
     
