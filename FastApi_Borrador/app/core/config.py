@@ -3,11 +3,11 @@ from pydantic import BaseSettings, AnyHttpUrl, EmailStr, validator
 from pydantic import BaseModel
 
 
-
 class Settings(BaseSettings):
     PROJECT_NAME: str = "TryHard"
     admin_email: str = 'lang@zuntrix.com'
-    DATABASE_URL: str = 'postgresql://zuntrix:zuntrix@localhost/db_aprendizaje'
+    # DATABASE_URL: str = 'postgresql://zuntrix:zuntrix@localhost/db_aprendizaje'
+    DATABASE_URL: str = 'postgresql://fl0user:YdHl8DJ7sXZO@ep-wispy-flower-95005706.us-east-2.aws.neon.tech:5432/TryHardDb?sslmode=require'
     SERVER_NAME: str = "TryHard"
     SERVER_HOST: AnyHttpUrl = "http://localhost:8000"
 
@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = ["http://localhost:5173"]
     FRONTEND_BASE_URL: AnyHttpUrl = "http://localhost:5173/"
+    STATIC_FILES_PATH = "static/"
     
     # JWT Configuration
     JWT_ALGORITHM  : str = "HS256"

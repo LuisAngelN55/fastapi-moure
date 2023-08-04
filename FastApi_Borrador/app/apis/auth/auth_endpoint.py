@@ -21,7 +21,8 @@ from utils.utils import (
     google_get_user_info,
     generate_email_verification_token,
     send_confirmation_email,
-    generate_random_password
+    generate_random_password,
+    send_new_account_email,
 )
 
 router = APIRouter (prefix="/auth",
@@ -166,6 +167,46 @@ def reset_password(
     return {"msg": "Password updated successfully"}
 
 
+## * ------------------- Change Password ------------------- ##
+@router.patch("/change-password/", response_model=schemas.Msg)
+def reset_password(
+    token: str = Body(...),
+    old_password: str = Body(...),
+    new_password: str = Body(...),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Reset password
+    """
+
+    
+    athlete_id = verify_password_reset_token(token)
+    if not athlete_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    
+    if old_password == new_password:
+        raise HTTPException(status_code=400, detail="La contraseña nueva debe ser diferente a la contraseña actual")
+    
+    print(f'TOKENNNNN ---------------- {token}')
+    athlete = crud.athletes.get_by_id(db, id=athlete_id)
+    if not athlete:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this username does not exist in the system.",
+        )
+    elif not crud.athletes.is_active(athlete):
+        raise HTTPException(status_code=400, detail="Inactive user")
+    
+    if not security.verify_password(plain_password=old_password, hashed_password=athlete.hashed_password):
+        raise HTTPException(status_code=400, detail="La contraseña actual no es correcta")
+    
+    hashed_password = get_password_hash(new_password)
+    athlete.hashed_password = hashed_password
+    db.add(athlete)
+    db.commit()
+    return {"msg": "Password updated successfully"}
+
+
 ## * ------------------- Google Social Login ------------------- ##
 @router.post('/login-google')
 async def google_login(google_code: str | None = None, db: Session = Depends(deps.get_db), Authorize: AuthJWT = Depends()):
@@ -196,6 +237,10 @@ async def google_login(google_code: str | None = None, db: Session = Depends(dep
         )
 
         athlete =  crud.athletes.create(db, obj_in=athlete_in)
+        if settings.EMAILS_ENABLED and athlete_in.email:
+            send_new_account_email(
+                athlete_id=str(athlete.id), email_to=athlete_in.email, username=athlete_in.username, password=athlete_in.password
+            )
         tokens = security.create_tokens(subject=str(athlete.id), Authorize=Authorize)
         return tokens
     

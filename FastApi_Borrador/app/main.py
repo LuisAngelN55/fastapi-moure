@@ -1,6 +1,5 @@
 from fastapi import FastAPI, responses, Request
 from starlette.middleware.cors import CORSMiddleware
-
 from apis.api_router import api_router
 from fastapi.staticfiles import StaticFiles
 from core.config import settings, jwt_settings

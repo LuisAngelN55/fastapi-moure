@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 
 from apis.athletes import athletes_endpoint
 from apis.auth import auth_endpoint
-
+from apis.files import files_endpoint
 
 api_router = APIRouter(
     # prefix="/athlete",
@@ -12,3 +12,4 @@ api_router = APIRouter(
 
 api_router.include_router(athletes_endpoint.router)
 api_router.include_router(auth_endpoint.router)
+api_router.include_router(files_endpoint.router)

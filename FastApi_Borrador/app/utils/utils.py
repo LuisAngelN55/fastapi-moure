@@ -11,9 +11,6 @@ import requests
 from core.config import settings
 import random
 import string
-import schemas
-import models
-from apis.athletes import crud_PhoneNumber
 from sqlalchemy.orm import Session
 
 
@@ -48,7 +45,7 @@ def send_email(
 def send_test_email(email_to: str) -> None:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - Test email"
-    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "test_email.html") as f:
+    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "test_email.html", encoding="utf-8") as f:
         template_str = f.read()
     send_email(
         email_to=email_to,
@@ -61,7 +58,7 @@ def send_test_email(email_to: str) -> None:
 def send_reset_password_email(email_to: str, username: str, email: str, token: str) -> None:
     project_name = settings.PROJECT_NAME
     subject = f"Has solicitado reiniciar tu contraseña {project_name}"
-    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html") as f:
+    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html", encoding="utf-8") as f:
         template_str = f.read()
     server_frontend = settings.FRONTEND_BASE_URL
     link = f"{server_frontend}auth/password-recovery?token={token}"
@@ -203,36 +200,3 @@ def generate_random_password(length=10):
     return password
 
 
-def convert_athletedb_athleteout(athletedb: models.Athletes, db: Session = Depends(get_db)) -> schemas.AthleteOut:
-    
-    if athletedb.phone_id:
-        phone = crud_PhoneNumber.phones.get_by_athlete(db=db, athlete_id=str(athletedb.id))
-    else: phone = None
-    
-    athlete = schemas.AthleteOut(
-        id                    = athletedb.id,
-        username              = athletedb.username,
-        email                 = athletedb.email,
-
-        first_name            = athletedb.first_name,
-        last_name             = athletedb.last_name,
-        display_name          = athletedb.display_name,
-        birthday              = athletedb.birthday,
-        photo_url             = athletedb.photo_url,
-
-        phone_number          = phone,
-        blood_type_id         = athletedb.blood_type_id,
-        nationality_code      = athletedb.nationality_code,
-        document_number_id    = athletedb.document_number_id,
-        gender_code           = athletedb.gender_code,
-
-        created_date          = athletedb.created_date,
-        last_connection       = athletedb.last_connection,
-        email_verified        = athletedb.email_verified,
-        is_active             = athletedb.is_active,
-        is_superuser          = athletedb.is_superuser,
-        google_sub            = athletedb.google_sub,
-        facebook_sub          = athletedb.facebook_sub,
-    )
-    print(athlete)
-    return athlete

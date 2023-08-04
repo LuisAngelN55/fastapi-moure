@@ -9,13 +9,20 @@ from schemas.athletes_schema import AthleteCreate, AthleteUpdate
 from schemas.phones_schema import PhoneNumberSchemaIn
 from apis.athletes.crud_PhoneNumber import phones
 from utils.utils_athletes import create_update_phone
+from fastapi import HTTPException, status
 
 class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
     def get_by_email(self, db: Session, *, email: str) -> Optional[Athletes]:
         return db.query(Athletes).filter(Athletes.email == email).first()
     
     def get_by_id(self, db: Session, *, id: str) -> Optional[Athletes]:
-        return db.query(Athletes).filter(Athletes.id == id).first()
+        try:
+            athlete =db.query(Athletes).filter(Athletes.id == id).first()
+            return athlete
+        except:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="The user id doesn't exist"
+            )
     
     def get_by_username(self, db: Session, *, username: str) -> Optional[Athletes]:
         return db.query(Athletes).filter(Athletes.username == username).first()
@@ -52,7 +59,6 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
         else:
             update_data = obj_in.dict(exclude_unset=True)
         
-        print(f'UPPPPPDATEEE-_______-----   {update_data}')
         # Password in payload
         if "password" in update_data:
             # Password is not empty
@@ -72,7 +78,9 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
         
         if "is_superuser" in update_data:
             del update_data["is_superuser"]
-  
+
+        print(f'UPPPPPDATEEE-_______-----   {update_data}')
+
         return super().update(db, db_obj=db_obj, obj_in=update_data)
     
     
