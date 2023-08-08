@@ -39,6 +39,7 @@ class Athletes(Base):
     facebook_sub         = Column(String(255), unique=True)
     
     phones               = relationship('Phones', backref='athletes', foreign_keys=[phone_id])
+    doc_number          = relationship('Document_Numbers', backref='athletes', foreign_keys=[document_number_id])
 
 
 
