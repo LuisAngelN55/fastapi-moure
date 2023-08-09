@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union, Dict, Any
 
 from sqlalchemy.orm import Session
 from core.security import get_password_hash, verify_password
@@ -24,7 +24,8 @@ class CRUDPhoneNumber(CRUDBase[Phones, AthleteCreate, AthleteUpdate]):
         db_phone = Phones(
             athlete_id       = obj_in.athlete_id,
             fcenter_id       = obj_in.fcenter_id,
-            country_code_id  = obj_in.country_code_id, 
+            country_code_id  = obj_in.country_code_id,
+            dial_code        = obj_in.dial_code,
             phone_number     = obj_in.phone_number
         )
         db.add(db_phone)
@@ -33,13 +34,13 @@ class CRUDPhoneNumber(CRUDBase[Phones, AthleteCreate, AthleteUpdate]):
         # db.refresh(db_phone)
         return db_phone
 
-    # def update(
-    #     self, db: Session, *, db_obj: Athletes, obj_in: Union[AthleteUpdate, Dict[str, Any]]
-    # ) -> Athletes:
-    #     if isinstance(obj_in, dict):
-    #         update_data = obj_in
-    #     else:
-    #         update_data = obj_in.dict(exclude_unset=True)
+    def update(
+        self, db: Session, *, db_obj: PhoneNumberSchemaIn, obj_in: Union[AthleteUpdate, Dict[str, Any]]
+    ) -> Phones:
+        if isinstance(obj_in, dict):
+            update_data = obj_in
+        else:
+            update_data = obj_in.dict(exclude_unset=True)
         
     #     # Password in payload
     #     if "password" in update_data:
@@ -51,7 +52,7 @@ class CRUDPhoneNumber(CRUDBase[Phones, AthleteCreate, AthleteUpdate]):
         
     #     if "is_superuser" in update_data:
     #         del update_data["is_superuser"]
-    #     return super().update(db, db_obj=db_obj, obj_in=update_data)
+        return super().update(db, db_obj=db_obj, obj_in=update_data)
 
 
 phones = CRUDPhoneNumber(Phones)

@@ -13,7 +13,7 @@ class Athletes(Base):
     __tablename__ = "athletes"
     
     # id                   = Column( BigInteger, Sequence('athletes_table_seq', start=1), autoincrement=True)
-    id                 = Column( UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id                   = Column( UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username             = Column(String(50), nullable=False, unique=True)
     email                = Column(String(100), nullable=False, unique=True)
     first_name           = Column(String(50))
@@ -29,13 +29,17 @@ class Athletes(Base):
     is_active            = Column(Boolean, default=True, server_default='True')
     is_superuser         = Column(Boolean, default=False, server_default='False')
     
-    blood_type_id        = Column(SmallInteger, ForeignKey('blood_types.id'))
+    blood_type           = Column(String(3), ForeignKey('blood_types.blood_type'))
     nationality_code     = Column(String(4), ForeignKey('country_codes.code'))
-    document_number_id   = Column(Integer, ForeignKey('document_numbers.id'))
+    doc_number_id        = Column(Integer, ForeignKey('document_numbers.id'))
     phone_id             = Column(Integer, ForeignKey('phones.id'))
     gender_code          = Column(String(4), ForeignKey('gender_codes.code'))
     
+    google_sub           = Column(String(255), unique=True)
+    facebook_sub         = Column(String(255), unique=True)
+    
     phones               = relationship('Phones', backref='athletes', foreign_keys=[phone_id])
+    doc_number           = relationship('Document_Numbers', backref='athletes', foreign_keys=[doc_number_id])
 
 
 
@@ -43,7 +47,7 @@ class Athletes(Base):
 class Fitness_Centers(Base):
     __tablename__    = 'fitness_centers'
 
-    id               = Column(Integer, primary_key=True)
+    id               = Column( UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     boxname          = Column(String(50), nullable=False)
     email            = Column(String(100), nullable=False)
     display_name     = Column(String(30))
@@ -66,10 +70,31 @@ class Phones(Base):
                             )
 
     id                    = Column(Integer, primary_key=True, autoincrement=True)
-    athlete_id            = Column(UUID(as_uuid=True), ForeignKey('athletes.id'))
-    fcenter_id            = Column(Integer, ForeignKey('fitness_centers.id'))
+    athlete_id            = Column(UUID(as_uuid=True), ForeignKey('athletes.id'), unique=True)
+    fcenter_id            = Column(UUID(as_uuid=True), ForeignKey('fitness_centers.id'), unique=True)
     country_code_id       = Column(String(4), ForeignKey('country_codes.code'))
+    dial_code             = Column(String(5), nullable= False)
     phone_number          = Column(String(15), nullable=False)
+    
+    athlete               = relationship('Athletes', foreign_keys=[athlete_id])
+    fcenter               = relationship('Fitness_Centers', foreign_keys=[fcenter_id])
+    
+    
+
+## * ------------------- ATHLETES FITNESS CENTER REL MODEL ------------------- ##
+class Relation_Athlete_FCenter(Base): 
+    __tablename__         = 'relation_athlete_fcenter'
+    __table_args__        = (
+                                UniqueConstraint('athlete_id', 'fcenter_id', name='unique_athlete_relation'),
+                            )
+
+    id                    = Column(Integer, primary_key=True, autoincrement=True)
+    athlete_id            = Column(UUID(as_uuid=True), ForeignKey('athletes.id'), nullable=False)
+    fcenter_id            = Column(UUID(as_uuid=True), ForeignKey('fitness_centers.id'), nullable=False)
+    role_type_id          = Column(Integer, ForeignKey('role_types_codes.id'), nullable=False)
+
+    
+    created_date          = Column(DateTime(timezone=True), default= datetime.now(), server_default=func.now(), nullable=False)
     
     athlete               = relationship('Athletes', foreign_keys=[athlete_id])
     fcenter               = relationship('Fitness_Centers', foreign_keys=[fcenter_id])

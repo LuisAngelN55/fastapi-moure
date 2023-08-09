@@ -3,9 +3,8 @@ from sqlalchemy import CheckConstraint, Column, Integer, String, BigInteger, Dat
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
+from models import athletes_info
 from sqlalchemy.dialects.postgresql import UUID
-
-
 
 
 ## * ------------------- BLOOD TYPES MODEL ------------------- ##
@@ -13,10 +12,9 @@ class Blood_Types(Base):
     __tablename__    = "blood_types"
     
     id               = Column(SmallInteger, primary_key=True)
-    blood_type       = Column(String(2), nullable=False)
-    rh               = Column(CHAR, nullable=False)
+    blood_type       = Column(String(3), nullable=False, unique=True)
     
-    athletes         = relationship('Athletes', backref="blood_type")
+    athletes         = relationship('Athletes', backref="blood_types")
 
 
 
@@ -28,10 +26,11 @@ class Language_Codes(Base):
     code                 = Column(String(3), nullable=False, unique=True)
     is_active            = Column(Boolean, nullable=False)
     
-    countries      = relationship('Countries', backref='language_codes')
-    doc_types      = relationship('Document_Types', backref='language_codes')
-    genders        = relationship('Genders', backref='language_codes')
-    lang_names     = relationship('Languages', backref='language_codes')
+    countries             = relationship('Countries', backref='language_codes')
+    doc_types             = relationship('Document_Type_Names', backref='language_codes')
+    genders               = relationship('Genders', backref='language_codes')
+    lang_names            = relationship('Languages', backref='language_codes')
+
 
 
 
@@ -47,36 +46,45 @@ class Languages(Base):
 ## * ------------------- DOCUMENT TYPES MODEL ------------------- ##
 class Document_Types(Base):
     __tablename__         = "document_types"
-    __table_args__        = (UniqueConstraint('doc_type_code', 'lang_code', name='unique_doc_type'), )
 
-    
     id                    = Column(SmallInteger, primary_key=True)
-    doc_type_code         = Column(String(2), nullable=False, unique=True)
-    doc_type_name         = Column(String(30), nullable=False)
-    lang_code             = Column(String(3), ForeignKey('language_codes.code'), nullable=False)
+    doc_type_code         = Column(String(5), nullable=False, unique=True)
     is_active             = Column(Boolean, nullable=False)
 
-    document_number       = relationship('Document_Numbers')
+    doc_numbers           = relationship('Document_Numbers', backref='document_types')
+    doc_type_names        = relationship('Document_Type_Names', backref='document_types')
 
+
+
+## * ------------------- Document Type Names MODEL ------------------- ##
+class Document_Type_Names(Base):
+    __tablename__        = 'document_type_names'
+    __table_args__ = (UniqueConstraint('doc_type_code', 'lang_code', name='unique_doctype_desc'), )
+
+
+    id                   = Column(SmallInteger, primary_key=True)
+    doc_type_code        = Column(String(4), ForeignKey('document_types.doc_type_code'), nullable=False)
+    doc_name             = Column(String(50), nullable=False)   
+    lang_code            = Column(String(3), ForeignKey('language_codes.code'), nullable=False)
 
 
 ## * ------------------- DOCUMENT NUMBERS MODEL ------------------- ##
 class Document_Numbers(Base):
     __tablename__        = 'document_numbers'
     __table_args__       = (
-                             UniqueConstraint('doc_type_id', 'doc_number', name='unique_document'),
-                             CheckConstraint('num_nonnulls(athlete_id, fitness_center_id) > 0'),
+                             UniqueConstraint('doc_type_code', 'doc_number', name='unique_document'),
+                             CheckConstraint('num_nonnulls(athlete_id, fcenter_id) > 0'),
                            )    
 
 
     id                   = Column(SmallInteger, primary_key=True)
     athlete_id           = Column(UUID(as_uuid=True), ForeignKey('athletes.id'), nullable=False)
-    fitness_center_id    = Column(Integer, ForeignKey('fitness_centers.id'))
-    doc_type_id          = Column(SmallInteger, ForeignKey('document_types.id'), nullable=False)
-    doc_number           = Column(Integer, nullable=False)
+    fcenter_id           = Column(UUID(as_uuid=True), ForeignKey('fitness_centers.id'))
+    doc_type_code        = Column(String(4), ForeignKey('document_types.doc_type_code'), nullable=False)
+    doc_number           = Column(String(15), nullable=False)
     
-    athletes             = relationship('Athletes', backref='document_numbers', cascade='all, delete', foreign_keys=[athlete_id])
-    fitness_centers      = relationship('Fitness_Centers', backref='document_numbers', cascade='all, delete', foreign_keys=[fitness_center_id])
+    athlete              = relationship('Athletes', foreign_keys=[athlete_id])
+    fitness_centers      = relationship('Fitness_Centers', foreign_keys=[fcenter_id])
 
 
 
@@ -140,8 +148,34 @@ class Genders(Base):
     lang_code        = Column(String(3), ForeignKey('language_codes.code'))
     gender_code      = Column(String(8), ForeignKey('gender_codes.code'))
     desc             = Column(String(20), nullable=False)
+    
+    
 
+## * ------------------- ROLE TYPES CODES MODEL ------------------- ##
+class Role_Type_Codes(Base):
+    __tablename__    = "role_types_codes"
+    
+    id                       = Column(SmallInteger, primary_key=True)
+    code                     = Column(String(8), unique=True)
+    is_active                = Column(Boolean, nullable=False)
+    
+    athletes_fitness_center  = relationship('Relation_Athlete_FCenter', backref="role_types_codes")
+    role_desc                = relationship('Role_Types', backref="role_types_codes")
+    
+    
+
+## * ------------------- ROLE TYPES NAMES MODEL ------------------- ##S
+class Role_Types(Base):
+    __tablename__    = "role_types"
+    __table_args__ = (UniqueConstraint('lang_code', 'role_type_id', name='unique_role_type'), )
+
+    
+    id               = Column(SmallInteger, primary_key=True)
+    lang_code        = Column(String(3), ForeignKey('language_codes.code'))
+    role_type_id     = Column(Integer, ForeignKey('role_types_codes.id'))
+    desc             = Column(String(20), nullable=False)
 
 
 # server_default=Sequence('mdata_translations_seq', start=1).next_value()
 # __table_args__ = (UniqueConstraint('table_name', 'row_id', 'language_code', name='unique_translations'), )
+

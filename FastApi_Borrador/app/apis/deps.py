@@ -1,5 +1,5 @@
 from typing import Generator
-
+from fastapi_jwt_auth import AuthJWT
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
@@ -27,7 +27,7 @@ def get_db() -> Generator:
 
 
 def get_current_athlete(
-    db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
+    db: Session = Depends(get_db), token: str = Depends(reusable_oauth2), Authorize: AuthJWT = Depends()
 ) -> athletes_info.Athletes:
     
     try:
@@ -36,10 +36,16 @@ def get_current_athlete(
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
         )
         token_data = tokenSchema.TokenPayload(**payload)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Signature has expired",
+        )
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
+            
         )
 
     athlete = crud.athletes.get(db, id=token_data.sub)
