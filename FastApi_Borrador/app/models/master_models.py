@@ -12,10 +12,9 @@ class Blood_Types(Base):
     __tablename__    = "blood_types"
     
     id               = Column(SmallInteger, primary_key=True)
-    blood_type       = Column(String(2), nullable=False)
-    rh               = Column(CHAR, nullable=False)
+    blood_type       = Column(String(3), nullable=False, unique=True)
     
-    athletes         = relationship('Athletes', backref="blood_type")
+    athletes         = relationship('Athletes', backref="blood_types")
 
 
 
@@ -28,7 +27,7 @@ class Language_Codes(Base):
     is_active            = Column(Boolean, nullable=False)
     
     countries             = relationship('Countries', backref='language_codes')
-    doc_types             = relationship('Document_Types_Desc', backref='language_codes')
+    doc_types             = relationship('Document_Type_Names', backref='language_codes')
     genders               = relationship('Genders', backref='language_codes')
     lang_names            = relationship('Languages', backref='language_codes')
 
@@ -52,13 +51,14 @@ class Document_Types(Base):
     doc_type_code         = Column(String(5), nullable=False, unique=True)
     is_active             = Column(Boolean, nullable=False)
 
-    docs                  = relationship('Document_Numbers', backref='document_types')
+    doc_numbers           = relationship('Document_Numbers', backref='document_types')
+    doc_type_names        = relationship('Document_Type_Names', backref='document_types')
 
 
 
-## * ------------------- Document Types Description MODEL ------------------- ##
-class Document_Types_Desc(Base):
-    __tablename__        = 'document_types_desc'
+## * ------------------- Document Type Names MODEL ------------------- ##
+class Document_Type_Names(Base):
+    __tablename__        = 'document_type_names'
     __table_args__ = (UniqueConstraint('doc_type_code', 'lang_code', name='unique_doctype_desc'), )
 
 
@@ -72,19 +72,19 @@ class Document_Types_Desc(Base):
 class Document_Numbers(Base):
     __tablename__        = 'document_numbers'
     __table_args__       = (
-                             UniqueConstraint('doc_type_id', 'doc_number', name='unique_document'),
-                             CheckConstraint('num_nonnulls(athlete_id, fitness_center_id) > 0'),
+                             UniqueConstraint('doc_type_code', 'doc_number', name='unique_document'),
+                             CheckConstraint('num_nonnulls(athlete_id, fcenter_id) > 0'),
                            )    
 
 
     id                   = Column(SmallInteger, primary_key=True)
-    doc_type_id          = Column(SmallInteger, ForeignKey('document_types.id'), nullable=False)
     athlete_id           = Column(UUID(as_uuid=True), ForeignKey('athletes.id'), nullable=False)
-    fitness_center_id    = Column(Integer, ForeignKey('fitness_centers.id'))
-    doc_number           = Column(Integer, nullable=False)
+    fcenter_id           = Column(UUID(as_uuid=True), ForeignKey('fitness_centers.id'))
+    doc_type_code        = Column(String(4), ForeignKey('document_types.doc_type_code'), nullable=False)
+    doc_number           = Column(String(15), nullable=False)
     
-    athlete             = relationship('Athletes', foreign_keys=[athlete_id])
-    fitness_centers      = relationship('Fitness_Centers', foreign_keys=[fitness_center_id])
+    athlete              = relationship('Athletes', foreign_keys=[athlete_id])
+    fitness_centers      = relationship('Fitness_Centers', foreign_keys=[fcenter_id])
 
 
 

@@ -6,9 +6,9 @@ from apis import deps
 from core.config import settings
 import schemas
 from apis.athletes.crud_PhoneNumber import phones
+from apis.athletes.crud_DocumentNumber import doc_numbers
 from utils.utils import send_new_account_email
 from utils.utils_athletes import convert_athletedb_athleteout, resize_profile_image
-from apis.athletes.crud_PhoneNumber import phones
 from fastapi.responses import JSONResponse
 import pathlib
 from apis.athletes import crud
@@ -95,6 +95,10 @@ def read_athlete_me(
         phone = phones.get_by_athlete(db=db, athlete_id=str(current_athlete.id))
     else: phone = None
     athlete.phone_number = phone
+    if current_athlete.doc_number:
+        doc_number = doc_numbers.get_by_athlete(db, athlete_id= str(current_athlete.id))
+    else: doc_number = None
+    athlete.doc_number = doc_number
     return athlete
 
 
@@ -134,11 +138,18 @@ def update_athlete(
     """
     Update a user.
     """
+    # Validate athlete exists
     athlete = crud.athletes.get(db, id=athlete_id)
     if not athlete:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="The user with this id does not exist in the system",
+        )
+    
+    if athlete != current_athlete and not crud.athletes.is_superuser(current_athlete):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The user doesn't have enough privileges",
         )
     
     if crud.athletes.get_by_username(db, username= athlete_in.username) and athlete_in.username != athlete.username:
@@ -154,22 +165,35 @@ def update_athlete(
             if current_phone.id != current_athlete.phone_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"El número de telefono {current_phone.phone_number} ya está siendo usado",
+                    detail=f"El número de documento {current_phone.phone_number} ya está siendo usado",
                 )
             else: delattr(athlete_in, "phone")
-            
+
+
+    if athlete_in.doc_number:
+        current_doc_number = doc_numbers.get_by_doc(db, doc_type_code=athlete_in.doc_number.doc_type_code,
+                                                    doc_number=athlete_in.doc_number.doc_number)
+        if current_doc_number:
+            if current_doc_number.id != current_athlete.doc_number_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"El número de documento {current_doc_number.doc_number} ya está siendo usado",
+                )
+            else: delattr(athlete_in, "doc_number")
+
+    athlete = crud.athletes.update(db, db_obj=athlete, obj_in=athlete_in)
+    athlete_out = convert_athletedb_athleteout(athletedb=current_athlete, db=db)
+    return athlete_out
+
+    # if athlete == current_athlete or crud.athletes.is_superuser(current_athlete):
+    #     athlete = crud.athletes.update(db, db_obj=athlete, obj_in=athlete_in)
+    #     athlete_out = convert_athletedb_athleteout(athletedb=current_athlete, db=db)
+    #     return athlete_out
     
-    if athlete == current_athlete or crud.athletes.is_superuser(current_athlete):
-        athlete_in.first_name = athlete_in.first_name.capitalize()
-        athlete_in.last_name = athlete_in.last_name.capitalize()
-        athlete = crud.athletes.update(db, db_obj=athlete, obj_in=athlete_in)
-        athlete_out = convert_athletedb_athleteout(athletedb=current_athlete, db=db)
-        return athlete_out
-    
-    raise HTTPException(
-    status_code=status.HTTP_400_BAD_REQUEST,
-    detail="The user doesn't have enough privileges",
-    )
+    # raise HTTPException(
+    # status_code=status.HTTP_400_BAD_REQUEST,
+    # detail="The user doesn't have enough privileges",
+    # )
 
 
 @router.post("/{athlete_id}/profile-image")

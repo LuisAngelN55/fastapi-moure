@@ -1,11 +1,14 @@
 from schemas.phones_schema import PhoneNumberSchemaIn
+from schemas.doc_number_schema import DocNumberSchemaIn
 from schemas.athletes_schema import Athlete
 import models
 from sqlalchemy.orm import Session
 import schemas
 from apis.athletes import crud_PhoneNumber
+from apis.athletes import crud_DocumentNumber
 import os
 from apis.athletes.crud_PhoneNumber import phones
+from apis.athletes.crud_DocumentNumber import doc_numbers
 from PIL import Image
 
 
@@ -14,6 +17,10 @@ def convert_athletedb_athleteout(athletedb: models.Athletes, db: Session) -> sch
     if athletedb.phone_id:
         phone = crud_PhoneNumber.phones.get_by_athlete(db=db, athlete_id=str(athletedb.id))
     else: phone = None
+
+    if athletedb.doc_number:
+        doc_number = crud_DocumentNumber.doc_numbers.get_by_athlete(db, athlete_id=str(athletedb.id))
+    else: doc_number = None
     
     athlete = schemas.AthleteOut(
         id                    = athletedb.id,
@@ -27,9 +34,9 @@ def convert_athletedb_athleteout(athletedb: models.Athletes, db: Session) -> sch
         photo_url             = athletedb.photo_url,
 
         phone_number          = phone,
-        blood_type_id         = athletedb.blood_type_id,
+        blood_type            = athletedb.blood_type,
         nationality_code      = athletedb.nationality_code,
-        document_number_id    = athletedb.document_number_id,
+        doc_number            = doc_number,
         gender_code           = athletedb.gender_code,
 
         created_date          = athletedb.created_date,
@@ -53,6 +60,16 @@ def create_update_phone(db: Session, phone_in: PhoneNumberSchemaIn, athlete_db: 
         phones.update(db, db_obj=phoneDB, obj_in=phone_in)
 
     return phoneDB
+
+def create_update_doc_number(db: Session, phone_in: DocNumberSchemaIn, athlete_db: Athlete) -> models.master_models.Document_Numbers:
+## phone_id: phone_in athlete
+    if not athlete_db.doc_number_id:
+        doc_numberDB = doc_numbers.create(db, obj_in= phone_in)
+    else:
+        doc_numberDB = doc_numbers.get_by_athlete(db, athlete_id=athlete_db.id)
+        phones.update(db, db_obj=doc_numberDB, obj_in=phone_in)
+
+    return doc_numberDB
 
 
 def resize_profile_image(filename: str, path: str, suffix: str) -> str:

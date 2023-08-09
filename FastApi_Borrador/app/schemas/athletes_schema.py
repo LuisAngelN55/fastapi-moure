@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date, datetime
 from schemas.phones_schema import PhoneNumberBase, PhoneNumber
+from schemas.doc_number_schema import DocNumberBase, DocNumber
 import uuid
 
 
@@ -18,9 +19,8 @@ class AthleteBase(BaseModel):
     birthday             : date | None = None
     photo_url            : str | None = None
 
-    blood_type_id        : int | None = None
-    nationality_code     : str | None = None
-    document_number_id   : int | None = None    
+    blood_type           : str | None = None
+    nationality_code     : str | None = None  
     gender_code          : str | None = None
     
     created_date         : datetime | None = None    
@@ -41,12 +41,13 @@ class AthleteCreate(AthleteBase):
 # Athlete entity - Properties to receive via API on update
 class AthleteUpdate(AthleteBase):
     phone                : PhoneNumberBase | None = None
-    password             : str | None = None
+    doc_number           : DocNumberBase   | None = None
     
     
 class AthleteInDBBase(AthleteBase):
     id                   : uuid.UUID
     phone_id             : int | None = None
+    doc_number_id        : int | None = None
     class Config:
         orm_mode = True
 
@@ -58,6 +59,7 @@ class Athlete(AthleteInDBBase):
 class AthleteOut(AthleteBase):
     id                   : uuid.UUID
     phone_number         : PhoneNumber | None = None
+    doc_number           : DocNumber | None = None
 
 # Additional properties stored in DB
 class AthleteInDB(AthleteInDBBase):

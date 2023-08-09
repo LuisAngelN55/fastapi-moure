@@ -7,8 +7,9 @@ from apis.crud_base import CRUDBase
 from models.athletes_info import Athletes
 from schemas.athletes_schema import AthleteCreate, AthleteUpdate
 from schemas.phones_schema import PhoneNumberSchemaIn
+from schemas.doc_number_schema import DocNumberSchemaIn
 from apis.athletes.crud_PhoneNumber import phones
-from utils.utils_athletes import create_update_phone
+from utils.utils_athletes import create_update_phone, create_update_doc_number
 from fastapi import HTTPException, status
 
 class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
@@ -58,14 +59,22 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
             update_data = obj_in
         else:
             update_data = obj_in.dict(exclude_unset=True)
+
+        if "first_name" in update_data:
+            update_data["first_name"] = update_data["first_name"].capitalize()
+            update_data["first_name"] = update_data["first_name"].capitalize()
+
+        if "last_name" in update_data:
+            update_data["last_name"] = update_data["last_name"].capitalize()
+
         
-        # Password in payload
-        if "password" in update_data:
-            # Password is not empty
-            if update_data["password"]:
-                hashed_password = get_password_hash(update_data["password"])
-                del update_data["password"]
-                update_data["hashed_password"] = hashed_password
+        # # Password in payload
+        # if "password" in update_data:
+        #     # Password is not empty
+        #     if update_data["password"]:
+        #         hashed_password = get_password_hash(update_data["password"])
+        #         del update_data["password"]
+        #         update_data["hashed_password"] = hashed_password
         
 
         if "phone" in update_data:
@@ -73,12 +82,17 @@ class CRUDAthletes(CRUDBase[Athletes, AthleteCreate, AthleteUpdate]):
             phoneDB = create_update_phone(db, phone_in, athlete_db=db_obj)
             update_data["phone_id"] = phoneDB.id
             del update_data["phone"]
-            
         
+        if "doc_number" in update_data:
+            doc_in = DocNumberSchemaIn(**update_data["doc_number"])
+            docDB = create_update_doc_number(db, doc_in, athlete_db=db_obj)
+            update_data["doc_number_id"] = docDB.id
+            del update_data["doc_number"]
+            
+
         
         if "is_superuser" in update_data:
             del update_data["is_superuser"]
-
 
         return super().update(db, db_obj=db_obj, obj_in=update_data)
     
